@@ -1,4 +1,5 @@
 import './style.css'
+import './scene';
 
 const app = document.querySelector<HTMLDivElement>('#app')!
 
