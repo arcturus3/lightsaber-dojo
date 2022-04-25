@@ -1,9 +1,27 @@
-import './style.css'
-import './scene';
+import {TestScene} from './TestScene';
+import './style.css';
+import {Clock, WebGLRenderer} from 'three';
+import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
 
-const app = document.querySelector<HTMLDivElement>('#app')!
+const renderer = new WebGLRenderer();
+renderer.setSize(window.innerWidth, window.innerHeight);
 
-app.innerHTML = `
-  <h1>Hello Vite!</h1>
-  <a href="https://vitejs.dev/guide/features.html" target="_blank">Documentation</a>
-`
+const scene = new TestScene();
+const camera = scene.camera;
+
+const controls = new OrbitControls(camera, renderer.domElement);
+
+const app = document.getElementById('app')!;
+app.appendChild(renderer.domElement);
+
+const clock = new Clock();
+
+const animate = () => {
+    requestAnimationFrame(animate);
+    const delta = clock.getDelta();
+    controls.update();
+    scene.update();
+    renderer.render(scene, camera);
+};
+
+animate();
