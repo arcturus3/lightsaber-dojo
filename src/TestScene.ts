@@ -1,10 +1,12 @@
-import {PerspectiveCamera, Mesh, MeshBasicMaterial, PlaneGeometry, Scene, SphereGeometry} from 'three';
+import {Mesh, MeshBasicMaterial, PerspectiveCamera, PlaneGeometry, Scene} from 'three';
 import {degToRad} from 'three/src/math/MathUtils';
+import {Droid} from './Droid';
 import {Lightsaber} from './Lightsaber';
 
 export class TestScene extends Scene {
     camera;
     lightsaber;
+    droid;
 
     constructor() {
         super();
@@ -20,12 +22,12 @@ export class TestScene extends Scene {
         plane.rotation.x = degToRad(-90);
         this.add(plane);
 
-        const sphereGeometry = new SphereGeometry();
-        const sphere = new Mesh(sphereGeometry, wireframeMaterial);
-        sphere.position.x = -5;
-        sphere.position.y = 10;
-        sphere.position.z = -20;
-        this.add(sphere);
+        this.droid = new Droid();
+        this.add(this.droid);
+        this.droid.position.set(-1, 2, -1);
+        setInterval(() => {
+            this.droid.fire(this.camera.position);
+        }, 1000);
 
         this.lightsaber = new Lightsaber();
         this.lightsaber.position.set(0.1, -0.5, -0.5);
@@ -37,6 +39,7 @@ export class TestScene extends Scene {
 
     update(delta: number) {
         this.lightsaber.update(delta);
+        this.droid.update(delta);
     }
 
     handleMouseDown() {

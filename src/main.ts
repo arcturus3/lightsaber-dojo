@@ -1,7 +1,7 @@
-import {TestScene} from './TestScene';
-import './style.css';
 import {Clock, WebGLRenderer} from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
+import './style.css';
+import {TestScene} from './TestScene';
 
 const renderer = new WebGLRenderer();
 renderer.setSize(innerWidth, innerHeight);

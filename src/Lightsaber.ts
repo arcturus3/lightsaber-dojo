@@ -1,5 +1,5 @@
-import {Mesh, CylinderGeometry, MeshBasicMaterial, Group} from 'three';
-import {lerp, smootherstep, degToRad} from 'three/src/math/MathUtils';
+import {CylinderGeometry, Group, Mesh, MeshBasicMaterial} from 'three';
+import {degToRad, lerp, smootherstep} from 'three/src/math/MathUtils';
 
 export class Lightsaber extends Group {
     mesh;
