@@ -4,7 +4,7 @@ import {Clock, WebGLRenderer} from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls';
 
 const renderer = new WebGLRenderer();
-renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setSize(innerWidth, innerHeight);
 
 const scene = new TestScene();
 const camera = scene.camera;
@@ -25,4 +25,4 @@ const animate = () => {
 
 animate();
 
-addEventListener('mousedown', () => scene.handleMouseDown());
+addEventListener('mousedown', scene.handleMouseDown);

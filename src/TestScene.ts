@@ -1,4 +1,5 @@
 import {PerspectiveCamera, Mesh, MeshBasicMaterial, PlaneGeometry, Scene, SphereGeometry} from 'three';
+import {degToRad} from 'three/src/math/MathUtils';
 import {Lightsaber} from './Lightsaber';
 
 export class TestScene extends Scene {
@@ -8,7 +9,7 @@ export class TestScene extends Scene {
     constructor() {
         super();
 
-        this.camera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        this.camera = new PerspectiveCamera(75, innerWidth / innerHeight, 0.1, 1000);
         this.camera.position.y = 5;
         this.add(this.camera);
 
@@ -16,7 +17,7 @@ export class TestScene extends Scene {
 
         const planeGeometry = new PlaneGeometry(100, 100, 50, 50);
         const plane = new Mesh(planeGeometry, wireframeMaterial);
-        plane.rotation.x = -Math.PI / 2;
+        plane.rotation.x = degToRad(-90);
         this.add(plane);
 
         const sphereGeometry = new SphereGeometry();
@@ -27,9 +28,11 @@ export class TestScene extends Scene {
         this.add(sphere);
 
         this.lightsaber = new Lightsaber();
-        this.lightsaber.position.set(0.4, -0.2, -0.5);
-        this.lightsaber.rotation.set(-0.3, -0.3, 0.1);
+        this.lightsaber.position.set(0.1, -0.5, -0.5);
+        this.lightsaber.rotation.set(degToRad(10), degToRad(60), degToRad(-20), 'XZY');
         this.camera.add(this.lightsaber);
+
+        this.handleMouseDown = this.handleMouseDown.bind(this);
     }
 
     update(delta: number) {
