@@ -1,8 +1,9 @@
-import {PerspectiveCamera, Mesh, MeshBasicMaterial, PlaneGeometry, Scene, SphereGeometry, CylinderGeometry} from 'three';
+import {PerspectiveCamera, Mesh, MeshBasicMaterial, PlaneGeometry, Scene, SphereGeometry} from 'three';
+import {Lightsaber} from './Lightsaber';
 
 export class TestScene extends Scene {
     camera;
-    saber;
+    lightsaber;
 
     constructor() {
         super();
@@ -25,14 +26,17 @@ export class TestScene extends Scene {
         sphere.position.z = -20;
         this.add(sphere);
 
-        const saberGeometry = new CylinderGeometry(0.025, 0.025, 1, 16);
-        this.saber = new Mesh(saberGeometry, wireframeMaterial);
-        this.saber.position.set(0.4, -0.2, -0.5);
-        this.saber.rotation.set(-0.3, 0, 0.1);
-        this.camera.add(this.saber);
+        this.lightsaber = new Lightsaber();
+        this.lightsaber.position.set(0.4, -0.2, -0.5);
+        this.lightsaber.rotation.set(-0.3, -0.3, 0.1);
+        this.camera.add(this.lightsaber);
     }
 
-    update() {
+    update(delta: number) {
+        this.lightsaber.update(delta);
+    }
 
+    handleMouseDown() {
+        this.lightsaber.handleMouseDown();
     }
 }

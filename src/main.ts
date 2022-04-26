@@ -18,10 +18,11 @@ const clock = new Clock();
 
 const animate = () => {
     requestAnimationFrame(animate);
-    const delta = clock.getDelta();
     controls.update();
-    scene.update();
+    scene.update(clock.getDelta());
     renderer.render(scene, camera);
 };
 
 animate();
+
+addEventListener('mousedown', () => scene.handleMouseDown());
