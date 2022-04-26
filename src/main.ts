@@ -25,4 +25,11 @@ const animate = () => {
 
 animate();
 
+const handleResize = () => {
+    renderer.setSize(innerWidth, innerHeight);
+    camera.aspect = innerWidth / innerHeight;
+    camera.updateProjectionMatrix();
+};
+
+addEventListener('resize', handleResize);
 addEventListener('mousedown', scene.handleMouseDown);
