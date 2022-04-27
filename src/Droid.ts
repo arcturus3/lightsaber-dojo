@@ -20,7 +20,7 @@ export class Droid extends Group {
             const distance = bolt.position.length();
             const worldBound = 100;
             if (distance <= worldBound) {
-                const speed = 4;
+                const speed = 5;
                 bolt.translateZ(speed * delta);
                 i++;
             } else {
@@ -34,10 +34,24 @@ export class Droid extends Group {
     fire(target: Vector3) {
         const geometry = new CapsuleGeometry(0.01, 0.1);
         geometry.rotateX(degToRad(90));
-        const material = new MeshBasicMaterial({wireframe: true});
+        const material = new MeshBasicMaterial({wireframe: true, color: 'red'});
         const bolt = new Mesh(geometry, material);
         this.add(bolt);
         bolt.lookAt(target);
         this.bolts.push(bolt);
+    }
+
+    handleMouseDown(playerPosition) {
+        let i = 0;
+        while (i < this.bolts.length) {
+            const bolt = this.bolts[i];
+            const boltPosition = bolt.getWorldPosition(new Vector3());
+            const distance = playerPosition.clone().sub(boltPosition).length();
+            const deflectThreshold = 0.5;
+            if (distance <= deflectThreshold) {
+                bolt.rotateX(degToRad(180));
+            }
+            i++;
+        }
     }
 }

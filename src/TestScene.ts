@@ -27,7 +27,8 @@ export class TestScene extends Scene {
         this.droid.position.set(-1, 2, -1);
         setInterval(() => {
             this.droid.fire(this.camera.position);
-        }, 1000);
+        }, 3000);
+        this.droid.fire(this.camera.position);
 
         this.lightsaber = new Lightsaber();
         this.lightsaber.position.set(0.1, -0.5, -0.5);
@@ -44,5 +45,6 @@ export class TestScene extends Scene {
 
     handleMouseDown() {
         this.lightsaber.handleMouseDown();
+        this.droid.handleMouseDown(this.camera.position);
     }
 }
