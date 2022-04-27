@@ -1,16 +1,28 @@
-import {CapsuleGeometry, Group, Mesh, MeshBasicMaterial, Object3D, SphereGeometry, Vector3} from 'three';
+import {CapsuleGeometry, Group, Mesh, MeshBasicMaterial, Object3D, Vector3} from 'three';
 import {degToRad} from 'three/src/math/MathUtils';
+import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader'
+import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader'
 
 export class Droid extends Group {
-    mesh;
     bolts: Object3D[] = [];
 
     constructor() {
         super();
-        const geometry = new SphereGeometry(0.1, 16, 8);
-        const material = new MeshBasicMaterial({wireframe: true});
-        this.mesh = new Mesh(geometry, material);
-        this.add(this.mesh);
+        var droidOBJ = 'models/jedi-training-droid/mesh.obj';
+        var droidMTL = 'models/jedi-training-droid/texture.mtl';    
+        const mtlLoader = new MTLLoader();
+        const objLoader = new OBJLoader();
+        var temp = new Object3D();
+        mtlLoader.load(droidMTL, function(materials) {
+            materials.preload();
+            objLoader.setMaterials(materials);
+            objLoader.load(droidOBJ,  (object) => {
+                object.scale.divideScalar(20);
+                temp.copy( object, true);
+            }); 
+        });
+        this.add(temp);
+        this.name = "training-droid";
     }
 
     update(delta: number) {
