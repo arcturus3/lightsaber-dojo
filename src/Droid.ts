@@ -1,12 +1,15 @@
-import {CapsuleGeometry, Group, Mesh, MeshBasicMaterial, Object3D, Vector3} from 'three';
+import {CapsuleGeometry, Group, Mesh, MeshBasicMaterial, Object3D, Vector3, Box3} from 'three';
 import {degToRad} from 'three/src/math/MathUtils';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader'
 import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader'
 
 export class Droid extends Group {
     bolts: Object3D[] = [];
+    hitbox;
+    index: number;
+    hearts;
 
-    constructor() {
+    constructor(playerhitbox:Mesh, hearts) {
         super();
         var droidOBJ = 'models/jedi-training-droid/mesh.obj';
         var droidMTL = 'models/jedi-training-droid/texture.mtl';    
@@ -22,7 +25,10 @@ export class Droid extends Group {
             }); 
         });
         this.add(temp);
+        this.hitbox = playerhitbox;
         this.name = "training-droid";
+        this.index = 0;
+        this.hearts = hearts;
     }
 
     update(delta: number) {
@@ -34,7 +40,19 @@ export class Droid extends Group {
             if (distance <= worldBound) {
                 const speed = 5;
                 bolt.translateZ(speed * delta);
-                i++;
+                // check if it gets hit
+                const bbox = new Box3().setFromObject(this.hitbox);
+                if(bbox.containsPoint(bolt.position)) {
+                    // if hits hearts decrease kill object
+                    const darkMaterial = new MeshBasicMaterial( { color: 'grey' } );
+                    if(this.index>=this.hearts.length)
+                        break;
+                    console.log("hit");
+                    this.hearts[this.index++].material = darkMaterial;
+                    this.remove(bolt);
+                    this.bolts.splice(i, 1);
+                }
+                i++; 
             } else {
                 // dispose of geometry and material or share these among all bolts?
                 this.remove(bolt);
@@ -44,9 +62,9 @@ export class Droid extends Group {
     }
 
     fire(target: Vector3) {
-        const geometry = new CapsuleGeometry(0.01, 0.1);
+        const geometry = new CapsuleGeometry(0.05, 0.8);
         geometry.rotateX(degToRad(90));
-        const material = new MeshBasicMaterial({wireframe: true, color: 'red'});
+        const material = new MeshBasicMaterial({color: 'red'});
         const bolt = new Mesh(geometry, material);
         this.add(bolt);
         bolt.lookAt(target);

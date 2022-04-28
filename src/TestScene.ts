@@ -11,6 +11,7 @@ export class TestScene extends Scene {
     droid;
     player;
     renderer; 
+    hearts;
 
     constructor() {
         super();
@@ -24,13 +25,35 @@ export class TestScene extends Scene {
 
         const resolution = "1K";
         const material = this.loadMaterial_("Rock035_"+resolution+"-PNG/Rock035_"+resolution+"_",2);
+        
 
-        const planeGeometry = new PlaneGeometry(100, 100, 50, 50);
+        const planeGeometry = new PlaneGeometry(400, 400, 50, 50);
         const plane = new Mesh(planeGeometry, material);
+        // console.log(plane.position);
+        plane.position.set(0,-1, 0);
         plane.rotation.x = degToRad(-90);
         this.add(plane);
 
-        this.droid = new Droid();
+         // add hitbox and healthbar
+        const geometry = new THREE.BoxGeometry( 3, 18, 1 );
+        const hitboxmat = new THREE.MeshBasicMaterial();
+        const hitbox = new THREE.Mesh( geometry, hitboxmat );
+        hitbox.visible = true;
+        // hitbox.position.z = -4;
+        this.camera.add(hitbox);
+
+        this.hearts = [];
+        
+        for(let i = 0;i<3;i++) {
+            const heart = this.createHeart();
+            heart.scale.divideScalar(600);
+            heart.rotateZ(degToRad(180));
+            heart.position.set(-0.35 - i*(0.05), 0.35, -0.5)
+            this.hearts.push(heart);
+            this.camera.add(heart);
+        }
+
+        this.droid = new Droid(hitbox, this.hearts);
         this.add(this.droid);
         this.droid.position.set(0, 6, 0);
         setInterval(() => {
@@ -40,12 +63,21 @@ export class TestScene extends Scene {
 
         this.lightsaber = new Lightsaber();
         this.lightsaber.position.set(0.1, -0.5, -0.5);
+        // this.lightsaber.position.set(0, 2, 0);
+
+        const axesHelper = new THREE.AxesHelper( 5 );
+        this.add( axesHelper );
+        // this.lightsaber.rotation.set(degToRad(10), degToRad(60), degToRad(-20), 'XZY');
         this.lightsaber.rotation.set(degToRad(10), degToRad(60), degToRad(-20), 'XZY');
+
         this.camera.add(this.lightsaber);
+
+        
+
 
         this.handleMouseDown = this.handleMouseDown.bind(this);
         this.initializeLights_();
-        this.player = new Player(this.camera, [this.lightsaber, plane, this.droid]);
+        this.player = new Player(this.camera, [this.lightsaber, plane, this.droid], this.lightsaber);
     }
 
 
@@ -97,30 +129,49 @@ loadMaterial_(name:String, tiling:number) {
     }
 
   initializeLights_() {
-    const distance = 50.0;
-    const angle = Math.PI / 4.0;
-    const penumbra = 0.5;
-    const decay = 1.0;
+    // const distance = 50.0;
+    // const angle = Math.PI / 4.0;
+    // const penumbra = 0.5;
+    // const decay = 1.0;
 
-    let light = new THREE.SpotLight(0xffffff, 15.0, distance, angle, penumbra, decay);
-    light.castShadow = true;
-    light.shadow.bias = -0.00001;
-    light.shadow.mapSize.width = 4096;
-    light.shadow.mapSize.height = 4096;
-    light.shadow.camera.near = 1;
-    light.shadow.camera.far = 100;
+    // let light = new THREE.SpotLight(0xffffff, 40.0, distance, angle, penumbra, decay);
+    // // let light = new THREE.SpotLight(0xffffff, 15.0, distance, angle, penumbra, decay);
+    // light.castShadow = true;
+    // light.shadow.bias = -0.00001;
+    // light.shadow.mapSize.width = 4096;
+    // light.shadow.mapSize.height = 4096;
+    // light.shadow.camera.near = 1;
+    // light.shadow.camera.far = 100;
 
-    light.position.set(0, 40, 0);
-    light.lookAt(0, 0, 0);
-    this.add(light);
+    // light.position.set(0, 40, 0);
+    // light.lookAt(0, 0, 0);
+    // this.add(light);
 
-    const upColour = 0xFFFF80;
-    const downColour = 0x808080;
-    let light2 = new THREE.HemisphereLight(upColour, downColour, 0.5);
-    // light2.color.setHSL( 0.6, 1, 0.6 );
-    // light2.groundColor.setHSL( 0.095, 1, 0.75 );
-    light2.position.set(0, 4, 0);
-    this.add(light2);
+    // const upColour = 0xFFFF80;
+    // const downColour = 0x808080;
+    // let light2 = new THREE.HemisphereLight(upColour, downColour, 0.5);
+    // // light2.color.setHSL( 0.6, 1, 0.6 );
+    // // light2.groundColor.setHSL( 0.095, 1, 0.75 );
+    // light2.position.set(0, 4, 0);
+    // this.add(light2);
+        const light = new THREE.PointLight( 0xffffff, 20, 90 );
+        light.position.set( 0, 50, 0 );
+        this.add( light );
+
+        // const light2 = new THREE.PointLight( 0xffffff, 20, 100 );
+        // light2.position.set( 50, -50, 50 );
+        // this.add( light2 );
+        // const light3 = new THREE.PointLight( 0xffffff, 20, 100 );
+        // light3.position.set( 50, -50, -50 );
+        // this.add( light3 );
+
+        // const light4 = new THREE.PointLight( 0xffffff, 20, 100 );
+        // light4.position.set( 50, 50, -50 );
+        // this.add( light4 );
+
+        const ambient = new THREE.AmbientLight( 0xffffff ); // soft white light
+        // const ambient = new THREE.AmbientLight( 0x404040 ); // soft white light
+        this.add( ambient ); 
 
     }
 
@@ -133,5 +184,24 @@ loadMaterial_(name:String, tiling:number) {
     handleMouseDown() {
         this.lightsaber.handleMouseDown();
         this.droid.handleMouseDown(this.camera.position);
+    }
+
+    createHeart() {
+        const x = 0, y = 0;
+
+        const heartShape = new THREE.Shape();
+
+        heartShape.moveTo( x + 5, y + 5 );
+        heartShape.bezierCurveTo( x + 5, y + 5, x + 4, y, x, y );
+        heartShape.bezierCurveTo( x - 6, y, x - 6, y + 7,x - 6, y + 7 );
+        heartShape.bezierCurveTo( x - 6, y + 11, x - 3, y + 15.4, x + 5, y + 19 );
+        heartShape.bezierCurveTo( x + 12, y + 15.4, x + 16, y + 11, x + 16, y + 7 );
+        heartShape.bezierCurveTo( x + 16, y + 7, x + 16, y, x + 10, y );
+        heartShape.bezierCurveTo( x + 7, y, x + 5, y + 5, x + 5, y + 5 );
+
+        const geometry = new THREE.ShapeGeometry( heartShape );
+        const material = new THREE.MeshBasicMaterial( { color: 0xFF0000 } );
+        const mesh = new THREE.Mesh( geometry, material ) ;
+        return mesh;
     }
 }

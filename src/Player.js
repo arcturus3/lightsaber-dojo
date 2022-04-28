@@ -108,7 +108,7 @@ class InputController {
 
 
 export class Player {
-    constructor(camera, objects) {
+    constructor(camera, objects, lightsaber) {
         this.camera_ = camera;
         this.input_ = new InputController();
         this.rotation_ = new THREE.Quaternion();
@@ -133,6 +133,12 @@ export class Player {
             b.setFromObject(objects[i]);
             this.objects_.push(b);
         }
+        // const geometry = new THREE.BoxGeometry( 2.5, 10, 1.5 );
+        // const material = new THREE.MeshBasicMaterial();
+        // this.hitbox = new THREE.Mesh( geometry, material );
+        // this.hitbox.visible = false;
+        // this.hitbox = hitbox;
+        this.lightsaber = lightsaber;
     }
 
     update(timeElapsedS) {
@@ -146,10 +152,17 @@ export class Player {
         this.timer+= timeElapsedS;
     }
 
-    updateCamera_(_) {
+    updateCamera_() {
         this.camera_.quaternion.copy(this.rotation_);
         this.camera_.position.copy(this.translation_);
+        // this.hitbox.quaternion.copy(this.rotation_);
+        // this.hitbox.position.copy(this.translation_);
         this.camera_.position.y += Math.sin(this.headBobTimer_ * 10) * 0.1;
+        if(this.input_.key(KEYS.shift))
+            this.lightsaber.position.y += Math.sin(this.headBobTimer_*10) * 0.0075;
+        else{
+            this.lightsaber.position.y += Math.sin(this.headBobTimer_*10) * 0.005;
+        }
 
         const forward = new THREE.Vector3(0, 0, -1);
         forward.applyQuaternion(this.rotation_);
@@ -190,9 +203,9 @@ export class Player {
         const forwardVelocity = (this.input_.key(KEYS.w) ? 1 : 0) + (this.input_.key(KEYS.s) ? -1 : 0)
         const strafeVelocity = (this.input_.key(KEYS.a) ? 1 : 0) + (this.input_.key(KEYS.d) ? -1 : 0)
         const jump = (this.input_.key(KEYS.space) && this.jumpcount > 0 ? 1 : 0);
-        const sprint = (this.input_.key(KEYS.shift) ? 2.5 : 1)
-        if(sprint>1)
-            console.log("sonic speed");
+        const sprint = (this.input_.key(KEYS.shift) ? 2.5 : 1.5)
+        // if(sprint>1)
+        //     console.log("sonic speed");
 
         const qx = new THREE.Quaternion();
         qx.setFromAxisAngle(new THREE.Vector3(0, 1, 0), this.phi_);
