@@ -1,4 +1,4 @@
-import {Mesh, MeshBasicMaterial, PerspectiveCamera, PlaneGeometry, Scene} from 'three';
+import {Mesh, MeshBasicMaterial, PerspectiveCamera, PlaneGeometry, Scene, Audio} from 'three';
 import * as THREE from 'three';
 import {degToRad} from 'three/src/math/MathUtils';
 import {Droid} from './Droid';
@@ -7,18 +7,26 @@ import {Player} from './Player';
 export class TestScene extends Scene {
     camera;
     lightsaber;
-    droid;
+    droids;
+    wave;
     player;
     renderer; 
-    hearts;
+    
     listener;
     audioloader;
     audio;
     clock;
+    bolts = [];
+
+    // for healthbar
+    hearts;
+    index;
+    firesound;
+
 
     constructor() {
         super();
-
+        // this.bolts = [];
         // renderer
         this.renderer = new THREE.WebGLRenderer();
         this.renderer.setSize(innerWidth, innerHeight);
@@ -32,17 +40,17 @@ export class TestScene extends Scene {
         
         this.audioloader = new THREE.AudioLoader();
         this.listener = new THREE.AudioListener();
-        const audio = new THREE.Audio( this.listener );
-        const firesound = this.audioloader.loadAsync('/audio/blaster audio.mp3');
+        this.audio = new THREE.Audio( this.listener );
+        this.firesound = this.audioloader.loadAsync('/audio/blaster audio.mp3');
         
 
-        const resolution = "1K";
+        const resolution = "4K";
+        console.log(resolution);
         const material = this.loadMaterial_("Rock035_"+resolution+"-PNG/Rock035_"+resolution+"_",2);
         
 
         const planeGeometry = new PlaneGeometry(400, 400, 50, 50);
         const plane = new Mesh(planeGeometry, material);
-        // console.log(plane.position);
         plane.position.set(0,-1, 0);
         plane.rotation.x = degToRad(-90);
         this.add(plane);
@@ -58,6 +66,7 @@ export class TestScene extends Scene {
         this.camera.add(hitbox);
 
         this.hearts = [];
+        this.index = 0;
         
         for(let i = 0;i<3;i++) {
             const heart = this.createHeart();
@@ -68,44 +77,47 @@ export class TestScene extends Scene {
             // this.camera.add(heart);
         }
 
-        this.droid = new Droid(hitbox, this.hearts);
-        this.add(this.droid);
-        this.droid.position.set(0, 6, 0);
-
-        setInterval(() => {
-            const target = this.camera.position.clone();
-            target.y -= 0.25;
-            // this.playSound(firesound,false,0.2);
-            this.audioloader.load('/audio/blaster audio.mp3', function( buffer ) {
-                audio.pause();
-                audio.setBuffer( buffer );
-                audio.setLoop( false );
-                audio.setVolume( 0.5 );
-                audio.play();
-            });
-            // console.log("fired");
-            this.droid.fire(target);
-        }, 3000);
+        this.droids = new Set();
+        this.wave = 3;
 
         this.lightsaber = new Lightsaber();
         this.lightsaber.position.set(0.1, -0.5, -0.5);
-        // this.lightsaber.position.set(0, 2, 0);
 
         const axesHelper = new THREE.AxesHelper( 5 );
         this.add( axesHelper );
-        // this.lightsaber.rotation.set(degToRad(10), degToRad(60), degToRad(-20), 'XZY');
         this.lightsaber.rotation.set(degToRad(10), degToRad(60), degToRad(-20), 'XZY');
 
         this.camera.add(this.lightsaber);
 
         this.handleMouseDown = this.handleMouseDown.bind(this);
         this.initializeLights_();
-        this.player = new Player(this.camera, [this.lightsaber, plane, this.droid], this.lightsaber);
+        this.player = new Player(this.camera, [this.lightsaber, plane], this.lightsaber);
         this.clock = new THREE.Clock();
         this.clock.start();
     }
 
 
+// https://stackoverflow.com/questions/6962658/randomize-setinterval-how-to-rewrite-same-random-after-random-interval
+   setRandomInterval = (intervalFunction, minDelay, maxDelay) => {
+        let timeout;
+      
+        const runInterval = () => {
+          const timeoutFunction = () => {
+            intervalFunction();
+            runInterval();
+          };
+      
+          const delay = Math.floor(Math.random() * (maxDelay - minDelay + 1)) + minDelay;
+      
+          timeout = setTimeout(timeoutFunction, delay);
+        };
+      
+        runInterval();
+      
+        return {
+          clear() { clearTimeout(timeout) },
+        };
+    };
 loadMaterial_(name:String, tiling:number) {
     const mapLoader = new THREE.TextureLoader();
     const maxAnisotropy = this.renderer.capabilities.getMaxAnisotropy();
@@ -154,45 +166,9 @@ loadMaterial_(name:String, tiling:number) {
     }
 
   initializeLights_() {
-    // const distance = 50.0;
-    // const angle = Math.PI / 4.0;
-    // const penumbra = 0.5;
-    // const decay = 1.0;
-
-    // let light = new THREE.SpotLight(0xffffff, 40.0, distance, angle, penumbra, decay);
-    // // let light = new THREE.SpotLight(0xffffff, 15.0, distance, angle, penumbra, decay);
-    // light.castShadow = true;
-    // light.shadow.bias = -0.00001;
-    // light.shadow.mapSize.width = 4096;
-    // light.shadow.mapSize.height = 4096;
-    // light.shadow.camera.near = 1;
-    // light.shadow.camera.far = 100;
-
-    // light.position.set(0, 40, 0);
-    // light.lookAt(0, 0, 0);
-    // this.add(light);
-
-    // const upColour = 0xFFFF80;
-    // const downColour = 0x808080;
-    // let light2 = new THREE.HemisphereLight(upColour, downColour, 0.5);
-    // // light2.color.setHSL( 0.6, 1, 0.6 );
-    // // light2.groundColor.setHSL( 0.095, 1, 0.75 );
-    // light2.position.set(0, 4, 0);
-    // this.add(light2);
-        const light = new THREE.PointLight( 0xffffff, 20, 90 );
+        const light = new THREE.PointLight( 0xffffff, 10, 90 );
         light.position.set( 0, 50, 0 );
         this.add( light );
-
-        // const light2 = new THREE.PointLight( 0xffffff, 20, 100 );
-        // light2.position.set( 50, -50, 50 );
-        // this.add( light2 );
-        // const light3 = new THREE.PointLight( 0xffffff, 20, 100 );
-        // light3.position.set( 50, -50, -50 );
-        // this.add( light3 );
-
-        // const light4 = new THREE.PointLight( 0xffffff, 20, 100 );
-        // light4.position.set( 50, 50, -50 );
-        // this.add( light4 );
 
         const ambient = new THREE.AmbientLight( 0xffffff ); 
         this.add( ambient ); 
@@ -200,31 +176,134 @@ loadMaterial_(name:String, tiling:number) {
     }
 
     
-    // playSound(sound, loop, volume) {
-    //     sound.then((buffer) => {
-    //         console.log("loggg");
-    //         this.audio.setBuffer(buffer);
-    //         this.audio.setLoop(loop);
-    //         this.audio.setVolume(volume);
-    //         this.audio.pause();
-    //         this.audio.play();
-    //     })
+
+    updateDroids(delta) {
+        if(this.droids.size==0) {
+            this.wave++;
+            for(let i = 0;i<this.wave;i++) {
+                const newdroid = new Droid(this.hearts);
+                this.droids.add(newdroid);
+                this.player.addObject(newdroid);
+                this.add(newdroid);
+                
+                this.setRandomInterval(() => {
+                const target = this.camera.position.clone();
+                target.y -= 0.25;
+                this.droidfire(newdroid, target);}, 2000, 10000);
+            }
+        }
+        else {
+            for(let droid of this.droids) {
+                if(droid.lives < 1){
+                    this.remove(droid);
+                    this.droids.delete(droid);
+                }
+                else {
+                    droid.moveDroid(delta, this.camera.position);
+                }
+            }
+        }
+    }
+    // fire(target) {
+    //     const geometry = new THREE.CapsuleGeometry(0.05, 0.8);
+    //     geometry.rotateX(degToRad(90));
+    //     const material = new MeshBasicMaterial({color: 'red'});
+    //     console.log(this.droids);
+    //     for(let droid of this.droids) {
+    //         const bolt = new Mesh(geometry, material);
+    //         bolt.name = "bolt";
+    //         bolt.position.copy(droid.position);
+    //         console.log("running");
+    //         this.add(bolt);
+    //         console.log(bolt);
+    //         bolt.lookAt(target);
+    //         this.bolts.push(bolt);
+    //         this.playSound(this.firesound,false,0.2);
+    //     }
     // }
 
-    // playSound(soundpath, loop, volume) {
+    droidfire(droid, target) {
+        const geometry = new THREE.CapsuleGeometry(0.05, 0.8);
+        geometry.rotateX(degToRad(90));
+        const material = new MeshBasicMaterial({color: 'red'});
+        const bolt = new Mesh(geometry, material);
+        bolt.name = "bolt";
+        bolt.position.copy(droid.position);
+        console.log("running");
+        this.add(bolt);
+        bolt.lookAt(target);
+        this.bolts.push(bolt);
+        this.playSound(this.firesound,false,0.2);
+        
+    }
 
-    // }
+    playSound(sound, loop, volume) {
+        sound.then((buffer) => {
+            const player = new Audio(this.listener);
+            console.log("loggg");
+            player.setBuffer(buffer);
+            player.setLoop(loop);
+            player.setVolume(volume);
+            player.play();
+        })
+    }
 
     update(delta: number) {
         this.lightsaber.update(delta);
-        this.droid.update(delta, this.camera.position, this.clock.getElapsedTime());
-        this.droid.moveDroid(delta, this.camera.position);
+        this.updateBolts(delta, this.camera.position, this.clock.getElapsedTime(), this.bolts);
         this.player.update(delta);
+        this.updateDroids(delta);
+    }
+
+    updateBolts(delta: number, playerPosition: THREE.Vector3, elapsedtime: number, bolts) {
+        let i = 0;
+        while (i < bolts.length) {
+            const bolt = bolts[i];
+            const distance = bolt.position.length();
+            const worldBound = 100;
+            if (distance <= worldBound) {
+                const speed = 15;
+                bolt.translateZ(speed * delta);
+                // check if it gets hit
+                // const bbox = new Box3().setFromObject(this.hitbox);
+                const boltPosition = bolt.getWorldPosition(new THREE.Vector3());
+                const distance = playerPosition.clone().sub(boltPosition).length();
+                
+                if(distance < 0.75) {
+                    // console.log(bbox);
+                    console.log("hit");
+                    // if hits hearts decrease kill object
+                    const darkMaterial = new MeshBasicMaterial( { color: 'grey' } );
+                    if(this.index>=this.hearts.length)
+                        break;
+                    this.hearts[this.index++].material = darkMaterial;
+                    this.remove(bolt);
+                    bolts.splice(i, 1);
+                }
+
+                for(let droid of this.droids) {
+                    const droiddist = droid.position.clone().sub(boltPosition).length();
+                    if(bolt.name==="deflectedbolt" && droiddist<0.25){
+                        droid.lives--;
+                        this.remove(bolt);
+                        bolts.splice(i, 1);
+                    }
+                }
+                
+                i++; 
+            } else {
+                // dispose of geometry and material or share these among all bolts?
+                this.remove(bolt);
+                bolts.splice(i, 1);
+            }
+        }
     }
 
     handleMouseDown() {
         this.lightsaber.handleMouseDown();
-        this.droid.handleMouseDown(this.camera.position, this.lightsaber.on);
+        for(let droid of this.droids) {
+            droid.handleMouseDown(this.camera.position, this.lightsaber.on, this.bolts);
+        }
     }
 
     createHeart() {

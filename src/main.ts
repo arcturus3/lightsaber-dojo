@@ -106,9 +106,9 @@ addEventListener('mousedown', scene.handleMouseDown);
 
 
 function darkenNonBloomed( obj ) {
-    
-    if ( obj.name !== "blade" && obj.name !== "bolt") {
-        
+
+    if ( obj.name !== "blade" && obj.name !== "bolt" && obj.name !== "deflectedbolt") {
+
         materials[ obj.uuid ] = obj.material;
         obj.material = darkMaterial;
         

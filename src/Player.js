@@ -142,6 +142,13 @@ export class Player {
         this.lightsaber = lightsaber;
     }
 
+    addObject(obj) {
+
+        const b = new THREE.Box3();
+        b.setFromObject(obj);
+        this.objects_.push(b);
+
+    }
     update(timeElapsedS) {
         this.updateRotation_(timeElapsedS);
         this.updateCamera_(timeElapsedS);
