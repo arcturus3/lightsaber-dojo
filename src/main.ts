@@ -132,5 +132,6 @@ function restoreMaterial( obj ) {
 
 document.getElementById('start-button')!.addEventListener('click', () => {
     document.getElementById('app')!.style.display = 'initial';
+    document.body.requestPointerLock();
     animate();
 });
