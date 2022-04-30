@@ -4,13 +4,15 @@ import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader'
 import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader'
 
 export class Droid extends Group {
-    bolts: Object3D[] = [];
-    hitbox;
     index: number;
     hearts;
     difficulty;
+    target;
+    lives;
+    waitTime;
+    waitDuration;
 
-    constructor(playerhitbox:Mesh, hearts) {
+    constructor(hearts) {
         super();
         var droidOBJ = 'models/jedi-training-droid/mesh.obj';
         var droidMTL = 'models/jedi-training-droid/texture.mtl';    
@@ -26,84 +28,70 @@ export class Droid extends Group {
             }); 
         });
         this.add(temp);
-        this.hitbox = playerhitbox;
         this.name = "training-droid";
         this.index = 0;
         this.hearts = hearts;
         this.difficulty = 1;
+        this.target = new Vector3();
+        this.lives = 2;
+        this.position.copy(this.randomdroidpos(25,new Vector3(0,4,0)));
+        this.waitTime = 0;
     }
 
-    update(delta: number, playerPosition: Vector3, elapsedtime: number) {
-        let i = 0;
-        while (i < this.bolts.length) {
-            const bolt = this.bolts[i];
-            const distance = bolt.position.length();
-            const worldBound = 100;
-            if (distance <= worldBound) {
-                const speed = 10;
-                bolt.translateZ(speed * delta);
-                // check if it gets hit
-                // const bbox = new Box3().setFromObject(this.hitbox);
-                const boltPosition = bolt.getWorldPosition(new Vector3());
-                const distance = playerPosition.clone().sub(boltPosition).length();
-                if(distance < 0.75) {
-                    // console.log(bbox);
-                    console.log("hit");
-                    // if hits hearts decrease kill object
-                    const darkMaterial = new MeshBasicMaterial( { color: 'grey' } );
-                    if(this.index>=this.hearts.length)
-                        break;
-                    this.hearts[this.index++].material = darkMaterial;
-                    this.remove(bolt);
-                    this.bolts.splice(i, 1);
-                }
-                i++; 
-            } else {
-                // dispose of geometry and material or share these among all bolts?
-                this.remove(bolt);
-                this.bolts.splice(i, 1);
+    moveDroid(delta, playerPosition) {
+        const distance = playerPosition.clone().sub(this.position).length();
+        const targetdistance = playerPosition.clone().sub(this.target).length();
+        const shootingdistance = 15;
+        if(distance > shootingdistance) {
+            this.target.copy(playerPosition);
+            this.lookAt(this.target);
+            this.translateZ(10*delta);
+            this.waitTime = 0;
+        }
+        else if(targetdistance > 0.5){
+            this.translateZ(7*delta);
+            this.waitTime = 0;
+            this.waitDuration = (Math.random()*8)+2;
+        }
+        else{
+            this.waitTime += delta;
+            if(this.waitTime > this.waitDuration){
+                this.target.copy(this.randomdroidpos(shootingdistance,playerPosition));
+                this.lookAt(this.target);
+                this.translateZ(7*delta);
+                console.log("moving");
+                this.waitTime = 0;
             }
         }
     }
 
-    fire(target: Vector3) {
-        const geometry = new CapsuleGeometry(0.05, 0.8);
-        geometry.rotateX(degToRad(90));
-        const material = new MeshBasicMaterial({color: 'red'});
-        const bolt = new Mesh(geometry, material);
-        bolt.name = "bolt";
-        this.add(bolt);
-        bolt.lookAt(target);
-        this.bolts.push(bolt);
-        
+
+    // uhh goes through the floor sometimes...
+    randomdroidpos(shootingdistance:number, playerPosition) {
+        const ylower = 4;
+        const yupper = 10;
+        const ret = new Vector3((Math.random()*2 )- 1,(Math.random()*2 )- 1,(Math.random()*2 )- 1).normalize();
+        ret.multiplyScalar(shootingdistance);
+        ret.add(playerPosition);
+        ret.y = this.clamp(ret.y, ylower, yupper);
+        // console.log(ret.y);
+        return ret;
     }
 
-    moveDroid(delta, playerPosition) {
-        // const distance = playerPosition.clone().sub(this.position).length();
-        // if(distance > 15) {
-        //     this.lookAt(playerPosition);
-        //     this.translateZ(7*delta);
-        // }
-        // else {
-        //     // const direction = new Vector3(Math.cos(delta), Math.sin(delta), 0).normalize();
-        //     // this.translateOnAxis(direction, 15*delta);
-        // }
-        // if(this.position.y<1) {
-        //     const direction = new Vector3(0,1, 0).normalize();
-        //     this.translateOnAxis(direction, 10*delta);
-        // }
+    clamp(x, a, b) {
+        return Math.min(Math.max(x, a), b);
     }
-
-    handleMouseDown(playerPosition, lightsaberon) {
+    handleMouseDown(playerPosition, lightsaberon, bolts) {
         let i = 0;
-        while (i < this.bolts.length) {
-            const bolt = this.bolts[i];
+        while (i < bolts.length) {
+            const bolt = bolts[i];
             const boltPosition = bolt.getWorldPosition(new Vector3());
             const distance = playerPosition.clone().sub(boltPosition).length();
             const deflectThreshold = 2;
             console.log(lightsaberon);
-            if (distance <= deflectThreshold && lightsaberon) {
+            if (distance <= deflectThreshold && lightsaberon && distance >= 0.75 && bolt.name === "bolt") {
                 bolt.rotateX(degToRad(180));
+                bolt.name = "deflectedbolt";
                 console.log("deflected!");
             }
             i++;
