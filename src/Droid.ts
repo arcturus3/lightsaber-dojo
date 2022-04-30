@@ -2,6 +2,7 @@ import {CapsuleGeometry, Group, Mesh, MeshBasicMaterial, Object3D, Vector3, Audi
 import {degToRad} from 'three/src/math/MathUtils';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader'
 import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader'
+import { Interface } from './Interface';
 
 export class Droid extends Group {
     bolts: Object3D[] = [];
@@ -9,6 +10,7 @@ export class Droid extends Group {
     index: number;
     hearts;
     difficulty;
+    health = 100;
 
     constructor(playerhitbox:Mesh, hearts) {
         super();
@@ -50,6 +52,9 @@ export class Droid extends Group {
                     // console.log(bbox);
                     console.log("hit");
                     // if hits hearts decrease kill object
+                    this.health -= 25;
+                    const overlay = new Interface();
+                    overlay.renderHealthbar(this.health / 100);
                     const darkMaterial = new MeshBasicMaterial( { color: 'grey' } );
                     if(this.index>=this.hearts.length)
                         break;

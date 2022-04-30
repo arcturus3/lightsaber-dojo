@@ -65,7 +65,7 @@ export class TestScene extends Scene {
             heart.rotateZ(degToRad(180));
             heart.position.set(-0.35 - i*(0.05), 0.35, -0.5)
             this.hearts.push(heart);
-            this.camera.add(heart);
+            // this.camera.add(heart);
         }
 
         this.droid = new Droid(hitbox, this.hearts);

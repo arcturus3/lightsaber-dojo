@@ -1,12 +1,13 @@
 import {Clock} from 'three';
-import './style.css';
 import {TestScene} from './TestScene';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import * as THREE from 'three';
-
+import 'bootstrap/dist/css/bootstrap.css';
+import '@fontsource/oswald';
+import './style.css';
 
 const ENTIRE_SCENE = 0, BLOOM_SCENE = 1;
 const bloomLayer = new THREE.Layers();
@@ -89,7 +90,6 @@ const animate = () => {
     // bloomComposer.render();
 };
 
-animate();
 
 const handleResize = () => {
     renderer.setSize(innerWidth, innerHeight);
@@ -106,12 +106,12 @@ addEventListener('mousedown', scene.handleMouseDown);
 
 
 function darkenNonBloomed( obj ) {
-
+    
     if ( obj.name !== "blade" && obj.name !== "bolt") {
-
+        
         materials[ obj.uuid ] = obj.material;
         obj.material = darkMaterial;
-
+        
     }
     else {
         // console.log(obj);
@@ -120,12 +120,17 @@ function darkenNonBloomed( obj ) {
 }
 
 function restoreMaterial( obj ) {
-
+    
     if ( materials[ obj.uuid ] ) {
-
+        
         obj.material = materials[ obj.uuid ];
         delete materials[ obj.uuid ];
-
+        
     }
-
+    
 }
+
+document.getElementById('start-button')!.addEventListener('click', () => {
+    document.getElementById('app')!.style.display = 'initial';
+    animate();
+});

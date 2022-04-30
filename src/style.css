@@ -1,4 +1,30 @@
 body {
   margin: 0;
   overflow: hidden;
+  color: white;
+  background-color: black;
+  font-family: Oswald;
+  font-weight: 500;
+  cursor: crosshair;
+  user-select: none;
+}
+
+#wave-indicator {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+}
+
+#healthbar {
+  width: 400px;
+  height: 20px;
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: hsl(0, 50%, 10%);
+}
+
+#healthbar-active {
+  background-color: hsl(0, 100%, 35%);
 }
