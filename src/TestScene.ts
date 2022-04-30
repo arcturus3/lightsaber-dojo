@@ -4,7 +4,6 @@ import {degToRad} from 'three/src/math/MathUtils';
 import {Droid} from './Droid';
 import {Lightsaber} from './Lightsaber';
 import {Player} from './Player';
-
 export class TestScene extends Scene {
     camera;
     lightsaber;
@@ -12,16 +11,30 @@ export class TestScene extends Scene {
     player;
     renderer; 
     hearts;
+    listener;
+    audioloader;
+    audio;
+    clock;
 
     constructor() {
         super();
 
+        // renderer
         this.renderer = new THREE.WebGLRenderer();
         this.renderer.setSize(innerWidth, innerHeight);
 
+        // camera
         this.camera = new PerspectiveCamera(75, innerWidth / innerHeight, 0.1, 1000);
         this.camera.position.set(0, 5, 0);
         this.add(this.camera);
+
+        // audio
+        
+        this.audioloader = new THREE.AudioLoader();
+        this.listener = new THREE.AudioListener();
+        const audio = new THREE.Audio( this.listener );
+        const firesound = this.audioloader.loadAsync('/audio/blaster audio.mp3');
+        
 
         const resolution = "1K";
         const material = this.loadMaterial_("Rock035_"+resolution+"-PNG/Rock035_"+resolution+"_",2);
@@ -35,11 +48,13 @@ export class TestScene extends Scene {
         this.add(plane);
 
          // add hitbox and healthbar
-        const geometry = new THREE.BoxGeometry( 3, 18, 1 );
+        //  not being used rip
+        const geometry = new THREE.BoxGeometry( 3, 18, 0.05 );
         const hitboxmat = new THREE.MeshBasicMaterial();
         const hitbox = new THREE.Mesh( geometry, hitboxmat );
-        hitbox.visible = true;
-        // hitbox.position.z = -4;
+        hitbox.position.set(0,0,1);
+        hitbox.visible = false;
+        hitbox.position.z = -4;
         this.camera.add(hitbox);
 
         this.hearts = [];
@@ -56,10 +71,21 @@ export class TestScene extends Scene {
         this.droid = new Droid(hitbox, this.hearts);
         this.add(this.droid);
         this.droid.position.set(0, 6, 0);
+
         setInterval(() => {
-            this.droid.fire(this.camera.position);
+            const target = this.camera.position.clone();
+            target.y -= 0.25;
+            // this.playSound(firesound,false,0.2);
+            this.audioloader.load('/audio/blaster audio.mp3', function( buffer ) {
+                audio.pause();
+                audio.setBuffer( buffer );
+                audio.setLoop( false );
+                audio.setVolume( 0.5 );
+                audio.play();
+            });
+            // console.log("fired");
+            this.droid.fire(target);
         }, 3000);
-        this.droid.fire(this.camera.position);
 
         this.lightsaber = new Lightsaber();
         this.lightsaber.position.set(0.1, -0.5, -0.5);
@@ -72,12 +98,11 @@ export class TestScene extends Scene {
 
         this.camera.add(this.lightsaber);
 
-        
-
-
         this.handleMouseDown = this.handleMouseDown.bind(this);
         this.initializeLights_();
         this.player = new Player(this.camera, [this.lightsaber, plane, this.droid], this.lightsaber);
+        this.clock = new THREE.Clock();
+        this.clock.start();
     }
 
 
@@ -169,21 +194,37 @@ loadMaterial_(name:String, tiling:number) {
         // light4.position.set( 50, 50, -50 );
         // this.add( light4 );
 
-        const ambient = new THREE.AmbientLight( 0xffffff ); // soft white light
-        // const ambient = new THREE.AmbientLight( 0x404040 ); // soft white light
+        const ambient = new THREE.AmbientLight( 0xffffff ); 
         this.add( ambient ); 
 
     }
 
+    
+    // playSound(sound, loop, volume) {
+    //     sound.then((buffer) => {
+    //         console.log("loggg");
+    //         this.audio.setBuffer(buffer);
+    //         this.audio.setLoop(loop);
+    //         this.audio.setVolume(volume);
+    //         this.audio.pause();
+    //         this.audio.play();
+    //     })
+    // }
+
+    // playSound(soundpath, loop, volume) {
+
+    // }
+
     update(delta: number) {
         this.lightsaber.update(delta);
-        this.droid.update(delta);
+        this.droid.update(delta, this.camera.position, this.clock.getElapsedTime());
+        this.droid.moveDroid(delta, this.camera.position);
         this.player.update(delta);
     }
 
     handleMouseDown() {
         this.lightsaber.handleMouseDown();
-        this.droid.handleMouseDown(this.camera.position);
+        this.droid.handleMouseDown(this.camera.position, this.lightsaber.on);
     }
 
     createHeart() {

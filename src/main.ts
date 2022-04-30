@@ -25,14 +25,8 @@ const params = {
 const scene = new TestScene();
 const camera = scene.camera;
 
-const geometry = new THREE.BoxGeometry( 2.5, 10, 1.5 );
-const material = new THREE.MeshBasicMaterial();
-const hitbox = new THREE.Mesh( geometry, material );
-hitbox.visible = false;
-scene.add( hitbox );
 
 const renderer = scene.renderer;
-scene.traverse(bloomblade);
 // const controls = new OrbitControls(camera, renderer.domElement);
 
 const app = document.getElementById('app')!;
@@ -48,6 +42,7 @@ bloomPass.strength = params.bloomStrength;
 bloomPass.radius = params.bloomRadius;
 
 const bloomComposer = new EffectComposer( renderer );
+bloomComposer.renderToScreen = false;
 bloomComposer.addPass( renderScene );
 bloomComposer.addPass( bloomPass );
 
@@ -110,20 +105,9 @@ addEventListener('mousedown', scene.handleMouseDown);
 
 
 
-
-function bloomblade( obj ) {
-
-    // if ( obj.name === "blade" ) {
-    //     // console.log("foundya");
-    //     // console.log(obj);
-    //     obj.layers.toggle( BLOOM_SCENE );
-    // }
-
-}
-
 function darkenNonBloomed( obj ) {
 
-    if ( obj.name !== "blade" ) {
+    if ( obj.name !== "blade" && obj.name !== "bolt") {
 
         materials[ obj.uuid ] = obj.material;
         obj.material = darkMaterial;

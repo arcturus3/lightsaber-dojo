@@ -11,6 +11,10 @@ export class Lightsaber extends Group {
     swinging = false;
     swingState = 0;
     swingDuration = 0.5;
+    hilt;
+    blade;
+    on = true;
+    toggling = false;
 
     constructor() {
         super();
@@ -40,17 +44,21 @@ export class Lightsaber extends Group {
 
             // console.log(gltf.scene.worldToLocal(new Vector3(1,0,0)));
             // console.log(gltf.scene.rotation);
-            this.mesh.add(gltf.scene);
+            this.hilt = gltf.scene.clone();
+            this.mesh.add(this.hilt);
         
         });
         
 
-        const blade = new Mesh(geometry, material);
-        blade.position.y += 1;
-        blade.position.z += 0.01;
-        blade.name = "blade";
+        this.blade = new Mesh(geometry, material);
+        this.blade.position.y += 1;
+        this.blade.position.z += 0.01;
+        this.blade.name = "blade";
+        // on position  y = 1
+        // off position y = -0.5;
+        console.log(this.blade.position);
 
-        this.mesh.add(blade);
+        this.mesh.add(this.blade);
         this.add(this.mesh);
         
     }
@@ -73,6 +81,24 @@ export class Lightsaber extends Group {
                 this.swinging = false;
                 this.swingState = 0;
             }
+        }
+        if (this.toggling) {
+            let sign = 3;
+            if(this.on===false)
+                sign = -3;
+            this.blade.translateY(delta*sign);
+            if(this.on===false && this.blade.position.y <= -0.5)
+                this.toggling = false;
+            if(this.on===true && this.blade.position.y >= 1)
+                this.toggling = false;
+
+        }
+    }
+
+    toggleLightsaber(){
+        if(!this.toggling) {
+            this.toggling = true;
+            this.on = !this.on;
         }
     }
 
