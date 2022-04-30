@@ -9,7 +9,7 @@ body {
   user-select: none;
 }
 
-#wave-indicator {
+#wave-count-container {
   position: fixed;
   top: 10px;
   left: 10px;

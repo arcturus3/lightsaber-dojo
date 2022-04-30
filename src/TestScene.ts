@@ -4,6 +4,8 @@ import {degToRad} from 'three/src/math/MathUtils';
 import {Droid} from './Droid';
 import {Lightsaber} from './Lightsaber';
 import {Player} from './Player';
+import {Interface} from './Interface';
+
 export class TestScene extends Scene {
     camera;
     lightsaber;
@@ -22,6 +24,8 @@ export class TestScene extends Scene {
     hearts;
     index;
     firesound;
+
+    health = 100;
 
 
     constructor() {
@@ -78,7 +82,7 @@ export class TestScene extends Scene {
         }
 
         this.droids = new Set();
-        this.wave = 3;
+        this.wave = 0;
 
         this.lightsaber = new Lightsaber();
         this.lightsaber.position.set(0.1, -0.5, -0.5);
@@ -180,6 +184,7 @@ loadMaterial_(name:String, tiling:number) {
     updateDroids(delta) {
         if(this.droids.size==0) {
             this.wave++;
+            document.getElementById('wave-count')!.innerHTML = this.wave.toString();
             for(let i = 0;i<this.wave;i++) {
                 const newdroid = new Droid(this.hearts);
                 this.droids.add(newdroid);
@@ -273,6 +278,9 @@ loadMaterial_(name:String, tiling:number) {
                     // console.log(bbox);
                     console.log("hit");
                     // if hits hearts decrease kill object
+                    this.health -= 25;
+                    const overlay = new Interface();
+                    overlay.renderHealthbar(this.health / 100);
                     const darkMaterial = new MeshBasicMaterial( { color: 'grey' } );
                     if(this.index>=this.hearts.length)
                         break;
