@@ -8,6 +8,7 @@ import {Interface} from './Interface';
 
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer';
 import {PositionalAudioHelper} from 'three/examples/jsm/helpers/PositionalAudioHelper';
+import {stopAnimation} from './main';
 export class TestScene extends Scene {
     camera;
     lightsaber;
@@ -300,6 +301,20 @@ loadMaterial_(name:String, tiling:number) {
                     console.log("hit");
                     // if hits hearts decrease kill object
                     this.health -= 25;
+                    if (this.health <= 0) {
+                        stopAnimation();
+                        document.getElementById('app')!.style.display = 'none';
+                        document.getElementById('start-screen')!.style.display = 'none';
+                        document.getElementById('end-screen')!.style.display = 'initial';
+                        document.getElementById('score')!.innerHTML = `${this.wave - 1} waves defeated`;
+                        this.lightsaber.on = false;
+                        this.lightsaberambient.pause();
+                        for (const droid of this.droids) {
+                            this.droidToIntervals[droid.uuid].clear();
+                        }
+                        document.exitPointerLock();
+                        return;
+                    }
                     const overlay = new Interface();
                     overlay.renderHealthbar(this.health / 100);
                     const darkMaterial = new MeshBasicMaterial( { color: 'grey' } );
@@ -338,7 +353,7 @@ loadMaterial_(name:String, tiling:number) {
     }
 
     updateDeadDroids(timeElapsedS) {
-        console.log(this.deaddroids);
+        // console.log(this.deaddroids);
         const EPS = 0.5;
         const GRAVITY = new THREE.Vector3(0,-1,0).multiplyScalar(9.8 * 90);
         const DAMPING = 0.03;

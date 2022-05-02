@@ -80,8 +80,11 @@ function renderBloom () {
     bloomComposer.render();
     scene.traverse( restoreMaterial );
 }
+
+let animationRequestId = {current: 0};
+
 const animate = () => {
-    requestAnimationFrame(animate);
+    animationRequestId.current = requestAnimationFrame(animate);
     // controls.update();
     scene.update(clock.getDelta());
     // renderer.render(scene, camera);
@@ -90,6 +93,9 @@ const animate = () => {
     // bloomComposer.render();
 };
 
+export const stopAnimation = () => {
+    cancelAnimationFrame(animationRequestId.current);
+}
 
 const handleResize = () => {
     renderer.setSize(innerWidth, innerHeight);
@@ -132,6 +138,15 @@ function restoreMaterial( obj ) {
 
 document.getElementById('start-button')!.addEventListener('click', () => {
     document.getElementById('app')!.style.display = 'initial';
+    document.getElementById('start-screen')!.style.display = 'none';
+    document.getElementById('end-screen')!.style.display = 'none';
     document.body.requestPointerLock();
     animate();
+});
+
+document.getElementById('end-button')!.addEventListener('click', () => {
+    // document.getElementById('app')!.style.display = 'none';
+    // document.getElementById('start-screen')!.style.display = 'initial';
+    // document.getElementById('end-screen')!.style.display = 'none';
+    location.reload();
 });

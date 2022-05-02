@@ -16,14 +16,27 @@
         </div>
 	</div>
 
-    <div style="width: 100%; height: 100%; position: fixed; display: flex; flex-direction: column; justify-content: center; align-items: center;">
-        <p style="font-size: 84px; margin-bottom: 40px;">Lightsaber Dojo</p>
-        <div id="start-button" style="border: 4px solid white; border-radius: 20px; padding: 0 20px;">
-            <object data="assets/icons/jedi.svg" style="width: 50px; height: 50px; margin-right: 20px; pointer-events: none;"></object>
-            <span style="font-size: 64px;">Enter</span>
+    <div id="start-screen">
+        <div style="width: 100%; height: 100%; position: fixed; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+            <p style="font-size: 84px; margin-bottom: 40px;">Lightsaber Dojo</p>
+            <div id="start-button" style="border: 4px solid white; border-radius: 20px; padding: 0 20px;">
+                <object data="assets/icons/jedi.svg" style="width: 50px; height: 50px; margin-right: 20px; pointer-events: none;"></object>
+                <span style="font-size: 64px;">Enter</span>
+            </div>
         </div>
     </div>
-    
+
+    <div id="end-screen" style="display: none;">
+        <div style="width: 100%; height: 100%; position: fixed; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+            <p style="font-size: 64px; margin-bottom: 40px;">"The greatest teacher, failure is."</p>
+            <p id="score" style="font-size: 48px; margin-bottom: 40px;">0 waves defeated</p>
+            <div id="end-button" style="border: 4px solid white; border-radius: 20px; padding: 0 20px;">
+                <object data="assets/icons/jedi.svg" style="width: 50px; height: 50px; margin-right: 20px; pointer-events: none;"></object>
+                <span style="font-size: 64px;">Restart</span>
+            </div>
+        </div>
+    </div>
+
     <script type="x-shader/x-vertex" id="vertexshader">
 
 			varying vec2 vUv;
