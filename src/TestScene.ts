@@ -12,6 +12,7 @@ export class TestScene extends Scene {
     camera;
     lightsaber;
     droids;
+    droidToIntervals;
     wave;
     player;
     renderer; 
@@ -102,6 +103,7 @@ export class TestScene extends Scene {
         }
 
         this.droids = new Set();
+        this.droidToIntervals = {};
         this.wave = 0;
 
         this.lightsaber = new Lightsaber();
@@ -211,7 +213,7 @@ loadMaterial_(name:String, tiling:number) {
                 this.player.addObject(newdroid);
                 this.add(newdroid);
                 
-                this.setRandomInterval(() => {
+                this.droidToIntervals[newdroid.uuid] = this.setRandomInterval(() => {
                 const target = this.camera.position.clone();
                 target.y -= 0.25;
                 this.droidfire(newdroid, target);}, 2000, 10000);
@@ -221,6 +223,7 @@ loadMaterial_(name:String, tiling:number) {
             for(let droid of this.droids) {
                 if(droid.lives < 1){
                     this.remove(droid);
+                    this.droidToIntervals[droid.uuid].clear();
                     this.droids.delete(droid);
                     this.playSound(this.sounds.EXPLOSION,false, 0.2);
                 }
