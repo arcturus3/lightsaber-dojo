@@ -251,7 +251,7 @@ export class Player {
             this.jumpcount--;
             this.lastJump = this.timer;
             this.vtdt = 1.5;
-            this.playSound(sounds.JUMP, false, 0.1, listener);
+            this.playSound(sounds.JUMP, false, 0.15, listener);
         
         }
         if(this.jumpcount==0 && this.translation_.y<=2+EPS) {
