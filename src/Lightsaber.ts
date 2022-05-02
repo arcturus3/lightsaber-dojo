@@ -57,6 +57,7 @@ export class Lightsaber extends Group {
         this.blade.position.y -= 0.5;
         this.blade.position.z += 0.01;
         this.blade.name = "blade";
+        this.blade.visible = false;
         // on position  y = 1
         // off position y = -0.5;
         console.log(this.blade.position);
@@ -99,6 +100,8 @@ export class Lightsaber extends Group {
                 this.toggling = false;
 
         }
+        if(this.blade.position.y<=-0.5) this.blade.visible = false;
+        else this.blade.visible=true;
     }
 
     toggleLightsaber(listener){
@@ -109,7 +112,7 @@ export class Lightsaber extends Group {
                 this.playSound(this.onaudio, false, 0.2, listener);
             }
             else {
-                this.playSound(this.offaudio, false, 0.2, listener);
+                this.playSound(this.offaudio, false, 0.1, listener);
             }
         }
     }

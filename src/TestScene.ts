@@ -12,6 +12,7 @@ export class TestScene extends Scene {
     camera;
     lightsaber;
     droids;
+    deaddroids;
     droidToIntervals;
     wave;
     player;
@@ -53,13 +54,15 @@ export class TestScene extends Scene {
         this.sounds = this.loadAVSounds(this.audioloader);
 
         this.lightsaberambient = this.generateAudio(this.sounds.AMBIENT, true, 0.2);
-        this.walksound = this.generateAudio(this.sounds.MOVE, true, 0.2);
+        this.walksound = this.generateAudio(this.sounds.MOVE, true, 1);
         // this.playSound(this.sounds.MOVE,true,0.2);
         this.lightsaberambient.play();
         this.walksound.play();
         // console.log(this.lightsaberambient.isPlaying);
 
         console.log(this.lightsaberambient.isPlaying);
+
+        this.playSound(this.sounds.COPYRIGHTBACKGROUND, true,0.1);
 
         // this.lightsaberambient.stop();
         // this.lightsaberambient.play();
@@ -68,7 +71,7 @@ export class TestScene extends Scene {
         // this.lightsaberambient.play();
         
 
-        const resolution = "1K";
+        const resolution = "4K";
         console.log(resolution);
         const material = this.loadMaterial_("Rock035_"+resolution+"-PNG/Rock035_"+resolution+"_",2);
         
@@ -103,6 +106,7 @@ export class TestScene extends Scene {
         }
 
         this.droids = new Set();
+        this.deaddroids = new Set();
         this.droidToIntervals = {};
         this.wave = 0;
 
@@ -203,7 +207,7 @@ loadMaterial_(name:String, tiling:number) {
 
     
 
-    updateDroids(delta) {
+    updateDroids(delta, listener) {
         if(this.droids.size==0) {
             this.wave++;
             document.getElementById('wave-count')!.innerHTML = this.wave.toString();
@@ -222,13 +226,15 @@ loadMaterial_(name:String, tiling:number) {
         else {
             for(let droid of this.droids) {
                 if(droid.lives < 1){
-                    this.remove(droid);
+                    // this.remove(droid);
                     this.droidToIntervals[droid.uuid].clear();
+                    this.deaddroids.add(droid);
                     this.droids.delete(droid);
-                    this.playSound(this.sounds.EXPLOSION,false, 0.2);
+                    this.playSound(this.sounds.EXPLOSION,false, 0.3);
+                    this.playSound(this.sounds.DROIDHIT,false, 0.15);
                 }
                 else {
-                    droid.moveDroid(delta, this.camera.position);
+                    // droid.moveDroid(delta, this.camera.position, listener);
                 }
             }
         }
@@ -271,7 +277,8 @@ loadMaterial_(name:String, tiling:number) {
         this.updateBolts(delta, this.camera.position, this.clock.getElapsedTime(), this.bolts);
         this.player.update(delta, this.sounds, this.listener,this.walksound);
         
-        this.updateDroids(delta);
+        this.updateDroids(delta, this.listener);
+        this.updateDeadDroids(delta);
     }
 
     updateBolts(delta: number, playerPosition: THREE.Vector3, elapsedtime: number, bolts) {
@@ -302,9 +309,9 @@ loadMaterial_(name:String, tiling:number) {
                     this.remove(bolt);
                     const coin = Math.random();
                     if(coin<0.5)
-                        this.playSound(this.sounds.HITARTI,false,0.2);
+                        this.playSound(this.sounds.HITARTI,false,0.15);
                     else    
-                        this.playSound(this.sounds.HITVIC,false,0.2);
+                        this.playSound(this.sounds.HITVIC,false,0.15);
                     bolts.splice(i, 1);
                 }
 
@@ -314,6 +321,10 @@ loadMaterial_(name:String, tiling:number) {
                         droid.lives--;
                         this.remove(bolt);
                         bolts.splice(i, 1);
+                        // droid.material.color = new THREE.Color(1,0,0);
+                        // const mat = droid.material.clone();
+                        // mat.color = new THREE.Color(1,0,0);
+                        // droid.material = mat;
                     }
                 }
                 
@@ -322,6 +333,35 @@ loadMaterial_(name:String, tiling:number) {
                 // dispose of geometry and material or share these among all bolts?
                 this.remove(bolt);
                 bolts.splice(i, 1);
+            }
+        }
+    }
+
+    updateDeadDroids(timeElapsedS) {
+        console.log(this.deaddroids);
+        const EPS = 0.5;
+        const GRAVITY = new THREE.Vector3(0,-1,0).multiplyScalar(9.8 * 90);
+        const DAMPING = 0.03;
+        const TIMESTEP = 2 / 1000;
+        const scalar = 3.5;
+        for(let droid of this.deaddroids) {
+            const pos = droid.position;
+            droid.deadtime += timeElapsedS;
+            if(droid.deadtime > 5) {
+                this.remove(droid);
+                this.deaddroids.delete(droid);
+            }
+            if(pos.y < 0 + EPS) {
+                pos.y = 0 + EPS;
+            }
+            else if (pos.y > 0 + EPS) {
+                let at = GRAVITY
+                let vtdt = new THREE.Vector3(0,1,0).multiplyScalar(droid.vtdt);
+                let contribution = vtdt.clone().multiplyScalar(1-DAMPING).add(at.multiplyScalar(TIMESTEP*TIMESTEP));
+                contribution.add(new THREE.Vector3(0,-1,0).multiplyScalar(Math.sin(droid.deadtime/5)/4));
+                contribution.add(new THREE.Vector3(1,0,0).multiplyScalar(Math.sin(droid.deadtime/5)/4));
+                droid.position.add(contribution);
+                droid.vtdt -=  9.8 * TIMESTEP/scalar;
             }
         }
     }
@@ -376,6 +416,7 @@ loadMaterial_(name:String, tiling:number) {
         DEFLECT: audioLoader.loadAsync("audio/deflect.m4a"),
         DROIDMOV: audioLoader.loadAsync("audio/droid movement.m4a"),
         EXPLOSION: audioLoader.loadAsync("audio/explosion.m4a"),
+        DROIDHIT: audioLoader.loadAsync("audio/droidhitgood.m4a"),
         HITARTI: audioLoader.loadAsync("audio/hitarti.m4a"),
         HITVIC: audioLoader.loadAsync("audio/hitvictor.m4a"),
         JUMP: audioLoader.loadAsync("audio/jump.m4a"),
@@ -383,8 +424,10 @@ loadMaterial_(name:String, tiling:number) {
         AMBIENT: audioLoader.loadAsync("audio/lightsabwr ambient.m4a"),
         ON: audioLoader.loadAsync("audio/lightsabwr on.m4a"),
         OFF: audioLoader.loadAsync("audio/lightsabwr off.m4a"),
-        MOVE: audioLoader.loadAsync("audio/walk.mp3"),
+        MOVE: audioLoader.loadAsync("audio/walk2.m4a"),
         BLASTER: audioLoader.loadAsync("audio/blaster audio.mp3"),
+        BACKGROUND: audioLoader.loadAsync("audio/duelofthefates.mp3"),
+        COPYRIGHTBACKGROUND:  audioLoader.loadAsync("audio/realduelofthefates.mp3")
         }
         return ret;
     }

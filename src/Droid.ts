@@ -1,4 +1,4 @@
-import {CapsuleGeometry, Group, Mesh, MeshBasicMaterial, Object3D, Vector3, Audio} from 'three';
+import {CapsuleGeometry, Group, Mesh, MeshBasicMaterial, Object3D, Vector3, Audio, AudioLoader} from 'three';
 import {degToRad} from 'three/src/math/MathUtils';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader'
 import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader'
@@ -13,6 +13,9 @@ export class Droid extends Group {
     lives;
     waitTime;
     waitDuration;
+    moveaudio;
+    vtdt = 0;
+    deadtime = 0;
 
     constructor(hearts) {
         super();
@@ -35,12 +38,14 @@ export class Droid extends Group {
         this.hearts = hearts;
         this.difficulty = 1;
         this.target = new Vector3();
-        this.lives = 2;
+        this.lives = 1;
         this.position.copy(this.randomdroidpos(25,new Vector3(0,4,0)));
         this.waitTime = 0;
+        const audioLoader = new AudioLoader();
+        this.moveaudio = audioLoader.loadAsync("audio/droid movement.m4a");
     }
 
-    moveDroid(delta, playerPosition) {
+    moveDroid(delta, playerPosition, listener) {
         const distance = playerPosition.clone().sub(this.position).length();
         const targetdistance = playerPosition.clone().sub(this.target).length();
         const shootingdistance = 15;
@@ -63,6 +68,7 @@ export class Droid extends Group {
                 this.translateZ(7*delta);
                 console.log("moving");
                 this.waitTime = 0;
+                this.playSound(this.moveaudio, false, 0.2, listener);
             }
         }
     }
@@ -92,7 +98,7 @@ export class Droid extends Group {
             const distance = playerPosition.clone().sub(boltPosition).length();
             const deflectThreshold = 2;
             console.log(lightsaberon);
-            if (distance <= deflectThreshold && lightsaberon && distance >= 0.75 && bolt.name === "bolt") {
+            if (distance <= deflectThreshold && lightsaberon && distance >= 1 && bolt.name === "bolt") {
                 bolt.rotateX(degToRad(180));
                 bolt.name = "deflectedbolt";
                 console.log("deflected!");
@@ -102,5 +108,14 @@ export class Droid extends Group {
             i++;
         }
         return ret;
+    }
+    playSound(sound, loop, volume, listener) {
+        sound.then((buffer) => {
+            const player = new Audio(listener);
+            player.setBuffer(buffer);
+            player.setLoop(loop);
+            player.setVolume(volume);
+            player.play();
+        })
     }
 }
