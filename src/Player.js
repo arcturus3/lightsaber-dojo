@@ -131,6 +131,7 @@ export class Player {
 
         this.headBobTimer_ = 0;
         this.objects_ = [];
+        this.lightsabertoggle = false;
 
         for (let i = 0; i < objects.length; ++i) {
             const b = new THREE.Box3();
@@ -152,20 +153,20 @@ export class Player {
         this.objects_.push(b);
 
     }
-    update(timeElapsedS) {
+    update(timeElapsedS, sounds, listener, walksound) {
         this.updateRotation_(timeElapsedS);
         this.updateCamera_(timeElapsedS);
-        this.updateTranslation_(timeElapsedS);
+        this.updateTranslation_(timeElapsedS, walksound, sounds,listener);
         this.updateHeadBob_(timeElapsedS);
         this.updateGravity_();
         this.previous.copy(this.translation_);
         this.input_.update(timeElapsedS);
         this.timer+= timeElapsedS;
         if(this.input_.key(KEYS.f)) {
-            this.lightsaber.toggleLightsaber();
+
+                this.lightsaber.toggleLightsaber(listener);
             
         }
-        // console.log(this.lightsaber.on);
     }
 
     updateCamera_() {
@@ -213,7 +214,7 @@ export class Player {
         }
     }
 
-    updateTranslation_(timeElapsedS) {
+    updateTranslation_(timeElapsedS, walksound, sounds, listener) {
         const forwardVelocity = (this.input_.key(KEYS.w) ? 1 : 0) + (this.input_.key(KEYS.s) ? -1 : 0)
         const strafeVelocity = (this.input_.key(KEYS.a) ? 1 : 0) + (this.input_.key(KEYS.d) ? -1 : 0)
         const jump = (this.input_.key(KEYS.space) && this.jumpcount > 0 ? 1 : 0);
@@ -221,8 +222,15 @@ export class Player {
         if(!this.lightsaber.on)
             sprint += 1;
 
-        // if(sprint>1)
-        //     console.log("sonic speed");
+        if(Math.abs(forwardVelocity)+Math.abs(strafeVelocity)>0 && this.camera_.position.y<6) {
+            console.log('moving');
+            // walksound.pause();
+            walksound.play();
+        }
+        else{
+            walksound.pause();
+        }
+            
 
         const qx = new THREE.Quaternion();
         qx.setFromAxisAngle(new THREE.Vector3(0, 1, 0), this.phi_);
@@ -239,11 +247,11 @@ export class Player {
         up.multiplyScalar(jump*2);
         const EPS = 2.5;
         if(jump==1 && (this.lastJump==0||this.timer - this.lastJump > 0.25) && this.jumpcount > 0) {
-        this.translation_.add(up);
-        this.jumpcount--;
-        this.lastJump = this.timer;
-        this.vtdt = 1.5;
-
+            this.translation_.add(up);
+            this.jumpcount--;
+            this.lastJump = this.timer;
+            this.vtdt = 1.5;
+            this.playSound(sounds.JUMP, false, 0.1, listener);
         
         }
         if(this.jumpcount==0 && this.translation_.y<=2+EPS) {
@@ -268,14 +276,14 @@ export class Player {
         const TIMESTEP = 18 / 1000;
         const scalar = 3.5;
         if(this.translation_.y < 2 + EPS) {
-        this.translation_.y = 2 + EPS;
+            this.translation_.y = 2 + EPS;
         }
         else if (this.translation_.y > 2 + EPS) {
-        let at = GRAVITY
-        let vtdt = new THREE.Vector3(0,1,0).multiplyScalar(this.vtdt);
-        let contribution = vtdt.clone().multiplyScalar(1-DAMPING).add(at.multiplyScalar(TIMESTEP*TIMESTEP));
-        this.translation_.add(contribution);
-        this.vtdt = this.vtdt-  9.8 * TIMESTEP/scalar;
+            let at = GRAVITY
+            let vtdt = new THREE.Vector3(0,1,0).multiplyScalar(this.vtdt);
+            let contribution = vtdt.clone().multiplyScalar(1-DAMPING).add(at.multiplyScalar(TIMESTEP*TIMESTEP));
+            this.translation_.add(contribution);
+            this.vtdt = this.vtdt-  9.8 * TIMESTEP/scalar;
         }
     }
 
@@ -296,5 +304,16 @@ export class Player {
         q.multiply(qz);
 
         this.rotation_.copy(q);
+    }
+
+    playSound(sound, loop, volume, listener) {
+        sound.then((buffer) => {
+            const player = new THREE.Audio(listener);
+            console.log("loggg");
+            player.setBuffer(buffer);
+            player.setLoop(loop);
+            player.setVolume(volume);
+            player.play();
+        })
     }
 }

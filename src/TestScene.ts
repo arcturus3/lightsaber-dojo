@@ -1,4 +1,4 @@
-import {Mesh, MeshBasicMaterial, PerspectiveCamera, PlaneGeometry, Scene, Audio} from 'three';
+import {Mesh, MeshBasicMaterial, PerspectiveCamera, PlaneGeometry, Scene, Audio, PositionalAudio} from 'three';
 import * as THREE from 'three';
 import {degToRad} from 'three/src/math/MathUtils';
 import {Droid} from './Droid';
@@ -6,6 +6,8 @@ import {Lightsaber} from './Lightsaber';
 import {Player} from './Player';
 import {Interface} from './Interface';
 
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer';
+import {PositionalAudioHelper} from 'three/examples/jsm/helpers/PositionalAudioHelper';
 export class TestScene extends Scene {
     camera;
     lightsaber;
@@ -23,19 +25,20 @@ export class TestScene extends Scene {
     // for healthbar
     hearts;
     index;
-    firesound;
+    sounds;
+    lightsaberambient;
+    walksound;
 
     health = 100;
 
 
     constructor() {
         super();
-        // this.bolts = [];
         // renderer
         this.renderer = new THREE.WebGLRenderer();
         this.renderer.setSize(innerWidth, innerHeight);
 
-        // camera
+        // cameraP
         this.camera = new PerspectiveCamera(75, innerWidth / innerHeight, 0.1, 1000);
         this.camera.position.set(0, 5, 0);
         this.add(this.camera);
@@ -45,10 +48,26 @@ export class TestScene extends Scene {
         this.audioloader = new THREE.AudioLoader();
         this.listener = new THREE.AudioListener();
         this.audio = new THREE.Audio( this.listener );
-        this.firesound = this.audioloader.loadAsync('/audio/blaster audio.mp3');
+
+        this.sounds = this.loadAVSounds(this.audioloader);
+
+        this.lightsaberambient = this.generateAudio(this.sounds.AMBIENT, true, 0.2);
+        this.walksound = this.generateAudio(this.sounds.MOVE, true, 0.2);
+        // this.playSound(this.sounds.MOVE,true,0.2);
+        this.lightsaberambient.play();
+        this.walksound.play();
+        // console.log(this.lightsaberambient.isPlaying);
+
+        console.log(this.lightsaberambient.isPlaying);
+
+        // this.lightsaberambient.stop();
+        // this.lightsaberambient.play();
+        // this.playSound(this.sounds.AMBIENT, true, 0.2);
+        // console.log(this.lightsaberambient);
+        // this.lightsaberambient.play();
         
 
-        const resolution = "4K";
+        const resolution = "1K";
         console.log(resolution);
         const material = this.loadMaterial_("Rock035_"+resolution+"-PNG/Rock035_"+resolution+"_",2);
         
@@ -58,6 +77,7 @@ export class TestScene extends Scene {
         plane.position.set(0,-1, 0);
         plane.rotation.x = degToRad(-90);
         this.add(plane);
+
 
          // add hitbox and healthbar
         //  not being used rip
@@ -87,8 +107,8 @@ export class TestScene extends Scene {
         this.lightsaber = new Lightsaber();
         this.lightsaber.position.set(0.1, -0.5, -0.5);
 
-        const axesHelper = new THREE.AxesHelper( 5 );
-        this.add( axesHelper );
+        // const axesHelper = new THREE.AxesHelper( 5 );
+        // this.add( axesHelper );
         this.lightsaber.rotation.set(degToRad(10), degToRad(60), degToRad(-20), 'XZY');
 
         this.camera.add(this.lightsaber);
@@ -202,6 +222,7 @@ loadMaterial_(name:String, tiling:number) {
                 if(droid.lives < 1){
                     this.remove(droid);
                     this.droids.delete(droid);
+                    this.playSound(this.sounds.EXPLOSION,false, 0.2);
                 }
                 else {
                     droid.moveDroid(delta, this.camera.position);
@@ -209,23 +230,6 @@ loadMaterial_(name:String, tiling:number) {
             }
         }
     }
-    // fire(target) {
-    //     const geometry = new THREE.CapsuleGeometry(0.05, 0.8);
-    //     geometry.rotateX(degToRad(90));
-    //     const material = new MeshBasicMaterial({color: 'red'});
-    //     console.log(this.droids);
-    //     for(let droid of this.droids) {
-    //         const bolt = new Mesh(geometry, material);
-    //         bolt.name = "bolt";
-    //         bolt.position.copy(droid.position);
-    //         console.log("running");
-    //         this.add(bolt);
-    //         console.log(bolt);
-    //         bolt.lookAt(target);
-    //         this.bolts.push(bolt);
-    //         this.playSound(this.firesound,false,0.2);
-    //     }
-    // }
 
     droidfire(droid, target) {
         const geometry = new THREE.CapsuleGeometry(0.05, 0.8);
@@ -238,14 +242,14 @@ loadMaterial_(name:String, tiling:number) {
         this.add(bolt);
         bolt.lookAt(target);
         this.bolts.push(bolt);
-        this.playSound(this.firesound,false,0.2);
+        
+        this.playSound(this.sounds.BLASTER,false,0.2);
         
     }
 
     playSound(sound, loop, volume) {
         sound.then((buffer) => {
             const player = new Audio(this.listener);
-            console.log("loggg");
             player.setBuffer(buffer);
             player.setLoop(loop);
             player.setVolume(volume);
@@ -254,9 +258,16 @@ loadMaterial_(name:String, tiling:number) {
     }
 
     update(delta: number) {
+        if(!this.lightsaber.on) {
+            this.lightsaberambient.pause();
+        }
+        else {
+            this.lightsaberambient.play();
+        }
         this.lightsaber.update(delta);
         this.updateBolts(delta, this.camera.position, this.clock.getElapsedTime(), this.bolts);
-        this.player.update(delta);
+        this.player.update(delta, this.sounds, this.listener,this.walksound);
+        
         this.updateDroids(delta);
     }
 
@@ -286,6 +297,11 @@ loadMaterial_(name:String, tiling:number) {
                         break;
                     this.hearts[this.index++].material = darkMaterial;
                     this.remove(bolt);
+                    const coin = Math.random();
+                    if(coin<0.5)
+                        this.playSound(this.sounds.HITARTI,false,0.2);
+                    else    
+                        this.playSound(this.sounds.HITVIC,false,0.2);
                     bolts.splice(i, 1);
                 }
 
@@ -309,9 +325,16 @@ loadMaterial_(name:String, tiling:number) {
 
     handleMouseDown() {
         this.lightsaber.handleMouseDown();
+        let bool = false;
         for(let droid of this.droids) {
-            droid.handleMouseDown(this.camera.position, this.lightsaber.on, this.bolts);
+            bool = bool || droid.handleMouseDown(this.camera.position, this.lightsaber.on, this.bolts);
         }
+        if(this.lightsaber.on) {
+            if(bool){
+                this.playSound(this.sounds.DEFLECT, false, 0.2);
+            }
+            this.playSound(this.sounds.SWING, false, 0.3);
+         }
     }
 
     createHeart() {
@@ -331,5 +354,35 @@ loadMaterial_(name:String, tiling:number) {
         const material = new THREE.MeshBasicMaterial( { color: 0xFF0000 } );
         const mesh = new THREE.Mesh( geometry, material ) ;
         return mesh;
+    }
+
+    generateAudio(sound, loop, volume){
+        const player = new Audio(this.listener);
+        sound.then((buffer) => {
+            
+            player.setBuffer(buffer);
+            player.setLoop(loop);
+            player.setVolume(volume);
+            player.play();
+        })
+        return player;
+    }
+    
+    loadAVSounds(audioLoader){
+        let ret =  {
+        DEFLECT: audioLoader.loadAsync("audio/deflect.m4a"),
+        DROIDMOV: audioLoader.loadAsync("audio/droid movement.m4a"),
+        EXPLOSION: audioLoader.loadAsync("audio/explosion.m4a"),
+        HITARTI: audioLoader.loadAsync("audio/hitarti.m4a"),
+        HITVIC: audioLoader.loadAsync("audio/hitvictor.m4a"),
+        JUMP: audioLoader.loadAsync("audio/jump.m4a"),
+        SWING: audioLoader.loadAsync("audio/lightsaberswing.mp3"),
+        AMBIENT: audioLoader.loadAsync("audio/lightsabwr ambient.m4a"),
+        ON: audioLoader.loadAsync("audio/lightsabwr on.m4a"),
+        OFF: audioLoader.loadAsync("audio/lightsabwr off.m4a"),
+        MOVE: audioLoader.loadAsync("audio/walk.mp3"),
+        BLASTER: audioLoader.loadAsync("audio/blaster audio.mp3"),
+        }
+        return ret;
     }
 }

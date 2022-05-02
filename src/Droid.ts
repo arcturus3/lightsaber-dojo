@@ -85,6 +85,7 @@ export class Droid extends Group {
     }
     handleMouseDown(playerPosition, lightsaberon, bolts) {
         let i = 0;
+        let ret = false;
         while (i < bolts.length) {
             const bolt = bolts[i];
             const boltPosition = bolt.getWorldPosition(new Vector3());
@@ -95,8 +96,11 @@ export class Droid extends Group {
                 bolt.rotateX(degToRad(180));
                 bolt.name = "deflectedbolt";
                 console.log("deflected!");
+                ret = true;
+                
             }
             i++;
         }
+        return ret;
     }
 }

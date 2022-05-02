@@ -1,20 +1,23 @@
 
 
-import {CapsuleGeometry, Group, Mesh, MeshBasicMaterial, Object3D, Vector3, MeshStandardMaterial} from 'three';
+import {CapsuleGeometry, Group, Mesh, MeshBasicMaterial, Object3D, Vector3, MeshStandardMaterial, Audio, AudioLoader} from 'three';
 import {degToRad, lerp, smootherstep} from 'three/src/math/MathUtils';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader'
 import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader'
 
+
 export class Lightsaber extends Group {
     mesh;
     swinging = false;
     swingState = 0;
-    swingDuration = 0.5;
+    swingDuration = 0.3;
     hilt;
     blade;
-    on = true;
+    on = false;
     toggling = false;
+    onaudio;
+    offaudio;
 
     constructor() {
         super();
@@ -51,7 +54,7 @@ export class Lightsaber extends Group {
         
 
         this.blade = new Mesh(geometry, material);
-        this.blade.position.y += 1;
+        this.blade.position.y -= 0.5;
         this.blade.position.z += 0.01;
         this.blade.name = "blade";
         // on position  y = 1
@@ -60,6 +63,9 @@ export class Lightsaber extends Group {
 
         this.mesh.add(this.blade);
         this.add(this.mesh);
+        const audioLoader = new AudioLoader();
+        this.onaudio = audioLoader.loadAsync("audio/lightsabwr on.m4a");
+        this.offaudio = audioLoader.loadAsync("audio/lightsabwr off.m4a");
         
     }
 
@@ -83,9 +89,9 @@ export class Lightsaber extends Group {
             }
         }
         if (this.toggling) {
-            let sign = 3;
+            let sign = 1.5;
             if(this.on===false)
-                sign = -3;
+                sign = -1.5;
             this.blade.translateY(delta*sign);
             if(this.on===false && this.blade.position.y <= -0.5)
                 this.toggling = false;
@@ -95,11 +101,27 @@ export class Lightsaber extends Group {
         }
     }
 
-    toggleLightsaber(){
+    toggleLightsaber(listener){
         if(!this.toggling) {
             this.toggling = true;
             this.on = !this.on;
+            if(this.on) {
+                this.playSound(this.onaudio, false, 0.2, listener);
+            }
+            else {
+                this.playSound(this.offaudio, false, 0.2, listener);
+            }
         }
+    }
+
+    playSound(sound, loop, volume, listener) {
+        sound.then((buffer) => {
+            const player = new Audio(listener);
+            player.setBuffer(buffer);
+            player.setLoop(loop);
+            player.setVolume(volume);
+            player.play();
+        })
     }
 
     handleMouseDown() {
