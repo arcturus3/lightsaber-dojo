@@ -234,7 +234,7 @@ loadMaterial_(name:String, tiling:number) {
                     this.playSound(this.sounds.DROIDHIT,false, 0.15);
                 }
                 else {
-                    // droid.moveDroid(delta, this.camera.position, listener);
+                    droid.moveDroid(delta, this.camera.position, listener);
                 }
             }
         }
