@@ -6,7 +6,6 @@ import { Interface } from './Interface';
 
 export class Droid extends Group {
     index: number;
-    hearts;
     difficulty;
     health = 100;
     target;
@@ -17,7 +16,7 @@ export class Droid extends Group {
     vtdt = 0;
     deadtime = 0;
 
-    constructor(hearts) {
+    constructor() {
         super();
         var droidOBJ = 'models/jedi-training-droid/mesh.obj';
         var droidMTL = 'models/jedi-training-droid/texture.mtl';    
@@ -35,7 +34,6 @@ export class Droid extends Group {
         this.add(temp);
         this.name = "training-droid";
         this.index = 0;
-        this.hearts = hearts;
         this.difficulty = 1;
         this.target = new Vector3();
         this.lives = 1;

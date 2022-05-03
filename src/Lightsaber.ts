@@ -1,6 +1,6 @@
 
 
-import {CapsuleGeometry, Group, Mesh, MeshBasicMaterial, Object3D, Vector3, MeshStandardMaterial, Audio, AudioLoader} from 'three';
+import {CapsuleGeometry, Group, Mesh, MeshBasicMaterial, Object3D, Vector3, Color, Audio, AudioLoader} from 'three';
 import {degToRad, lerp, smootherstep} from 'three/src/math/MathUtils';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader'
@@ -18,12 +18,16 @@ export class Lightsaber extends Group {
     toggling = false;
     onaudio;
     offaudio;
+    colors;
+    index = 0;
+    colorswapwait = 0;
 
     constructor() {
         super();
         // const geometry = new CylinderGeometry(0.025, 0.025, 1.5, 16);
         const geometry = new CapsuleGeometry(0.025, 1.5);
 
+        this.colors = [0x2E67F8, 0xEB212E, 0x7851a9, 0x2FF923, 0xffc0cb, 0x808000, 0xD2B48C];
         // const material = new MeshBasicMaterial({wireframe: true});
         const material = new MeshBasicMaterial( {
 
@@ -102,6 +106,12 @@ export class Lightsaber extends Group {
         }
         if(this.blade.position.y<=-0.5) this.blade.visible = false;
         else this.blade.visible=true;
+        let saberhue = {};
+        this.blade.material.color.getHSL(saberhue);
+        if((saberhue.h >= 0 && saberhue.h <= 20/360) || (saberhue.h >= 330/360 && saberhue.h <=1)) {
+            console.log("welcome to the darkside");
+            // console.log(saberhue);
+        }
     }
 
     toggleLightsaber(listener){
@@ -131,5 +141,13 @@ export class Lightsaber extends Group {
         if (!this.swinging) {
             this.swinging = true;
         }
+    }
+
+    swapColor() {
+        // this.blade.material.color = new Color(this.colors[++this.index]);
+        // if(this.index > this.colors.length - 1)
+        //     this.index = 0;
+        let offset = 1/256/2;
+        this.blade.material.color.offsetHSL(offset,0,0);
     }
 }

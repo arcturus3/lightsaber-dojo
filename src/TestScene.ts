@@ -26,13 +26,12 @@ export class TestScene extends Scene {
     bolts = [];
 
     // for healthbar
-    hearts;
-    index;
     sounds;
     lightsaberambient;
     walksound;
 
-    health = 100;
+    maxhealth = 400;
+    health = this.maxhealth;
 
 
     constructor() {
@@ -93,18 +92,6 @@ export class TestScene extends Scene {
         hitbox.visible = false;
         hitbox.position.z = -4;
         this.camera.add(hitbox);
-
-        this.hearts = [];
-        this.index = 0;
-        
-        for(let i = 0;i<3;i++) {
-            const heart = this.createHeart();
-            heart.scale.divideScalar(600);
-            heart.rotateZ(degToRad(180));
-            heart.position.set(-0.35 - i*(0.05), 0.35, -0.5)
-            this.hearts.push(heart);
-            // this.camera.add(heart);
-        }
 
         this.droids = new Set();
         this.deaddroids = new Set();
@@ -224,7 +211,7 @@ loadMaterial_(name:String, tiling:number) {
             this.wave++;
             document.getElementById('wave-count')!.innerHTML = this.wave.toString();
             for(let i = 0;i<this.wave;i++) {
-                const newdroid = new Droid(this.hearts);
+                const newdroid = new Droid();
                 this.droids.add(newdroid);
                 this.player.addObject(newdroid);
                 this.add(newdroid);
@@ -232,7 +219,7 @@ loadMaterial_(name:String, tiling:number) {
                 this.droidToIntervals[newdroid.uuid] = this.setRandomInterval(() => {
                 const target = this.camera.position.clone();
                 target.y -= 0.25;
-                this.droidfire(newdroid, target);}, 2000, 10000);
+                this.droidfire(newdroid, target);}, 1000, 4000);
             }
         }
         else {
@@ -327,11 +314,7 @@ loadMaterial_(name:String, tiling:number) {
                         return;
                     }
                     const overlay = new Interface();
-                    overlay.renderHealthbar(this.health / 100);
-                    const darkMaterial = new MeshBasicMaterial( { color: 'grey' } );
-                    if(this.index>=this.hearts.length)
-                        break;
-                    this.hearts[this.index++].material = darkMaterial;
+                    overlay.renderHealthbar(this.health / this.maxhealth);
                     this.remove(bolt);
                     const coin = Math.random();
                     if(coin<0.5)
@@ -343,14 +326,15 @@ loadMaterial_(name:String, tiling:number) {
 
                 for(let droid of this.droids) {
                     const droiddist = droid.position.clone().sub(boltPosition).length();
-                    if(bolt.name==="deflectedbolt" && droiddist<0.25){
+                    if(bolt.name==="deflectedbolt" && droiddist<0.5){
                         droid.lives--;
                         this.remove(bolt);
                         bolts.splice(i, 1);
-                        // droid.material.color = new THREE.Color(1,0,0);
-                        // const mat = droid.material.clone();
-                        // mat.color = new THREE.Color(1,0,0);
-                        // droid.material = mat;
+                        this.health+=25;
+                        this.health = Math.min(this.health, this.maxhealth);
+                        const overlay = new Interface();
+                        overlay.renderHealthbar(this.health / this.maxhealth);
+                        
                     }
                 }
                 

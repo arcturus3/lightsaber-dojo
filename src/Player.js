@@ -8,6 +8,7 @@ const KEYS = {
 'space' : 32,
 'shift' : 16,
 'f' : 70,
+'g' : 71,
 };
 
 function clamp(x, a, b) {
@@ -166,6 +167,11 @@ export class Player {
 
                 this.lightsaber.toggleLightsaber(listener);
             
+        }
+
+        if(this.input_.key(KEYS.g)) {
+            this.lightsaber.swapColor();
+        
         }
     }
 
