@@ -125,6 +125,17 @@ export class TestScene extends Scene {
         this.player = new Player(this.camera, [this.lightsaber, plane], this.lightsaber);
         this.clock = new THREE.Clock();
         this.clock.start();
+
+        const mapLoader = new THREE.TextureLoader();
+        const crosshair = mapLoader.load('models/crosshair.png');
+        crosshair.anisotropy = this.renderer.capabilities.getMaxAnisotropy();
+
+        const sprite = new THREE.Sprite(
+        new THREE.SpriteMaterial({map: crosshair, color: 0xffffff, fog: false, depthTest: false, depthWrite: false}));
+        sprite.scale.set(0.1, 0.1 , 1)
+        sprite.position.set(0, 0, -1);
+
+        this.camera.add(sprite);
     }
 
 
