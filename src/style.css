@@ -28,3 +28,7 @@ body {
 #healthbar-active {
   background-color: hsl(0, 100%, 35%);
 }
+
+code {
+  color: hsl(206, 100%, 70%);
+}
