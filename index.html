@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lightsaber Dojo</title>
+    <script type="module" crossorigin src="/lightsaber-dojo/assets/index.70295cee.js"></script>
+    <link rel="stylesheet" href="/lightsaber-dojo/assets/index.a1b3292c.css">
+  </head>
+  <body>
+    <div id="app" style="display: none;">
+        <div id="wave-count-container" style="display: flex; align-items: center;">
+            <object data="assets/icons/droid.svg" style="width: 30px; height: 30px; margin-right: 15px;"></object>
+            <span id="wave-count" style="font-family: Oswald; font-weight: 500; font-size: 28px; color: white;">1</span>
+        </div>
+        <div id="healthbar" class="progress">
+            <div id="healthbar-active" class="progress-bar" style="width: 100%;"></div>
+        </div>
+	</div>
+
+    <div id="start-screen">
+        <div style="width: 100%; height: 100%; position: fixed; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+            <p style="font-size: 84px; margin-bottom: 40px;">Lightsaber Dojo</p>
+            <div id="start-button" style="border: 4px solid white; border-radius: 20px; padding: 0 20px; margin-bottom: 40px;">
+                <object data="assets/icons/jedi.svg" style="width: 50px; height: 50px; margin-right: 20px; pointer-events: none;"></object>
+                <span style="font-size: 64px;">Enter</span>
+            </div>
+            <p style="font-size: 48px;">Instructions</p>
+            <ul style="font-size: 24px;">
+                <li>Survive as many waves of training droids as you can</li>
+                <li>Deflect their blaster bolts with your lightsaber to destroy them</li>
+                <li>Activate your lightsaber with <code>F</code> and swing with <code>Left Click</code></li>
+                <li>Move with <code>W</code>, <code>A</code>, <code>S</code>, <code>D</code> and jump or double jump with <code>Space</code></li>
+            </ul>
+        </div>
+    </div>
+
+    <div id="end-screen" style="display: none;">
+        <div style="width: 100%; height: 100%; position: fixed; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+            <p style="font-size: 64px; margin-bottom: 40px;">"The greatest teacher, failure is."</p>
+            <p id="score" style="font-size: 48px; margin-bottom: 40px;">0 waves defeated</p>
+            <div id="end-button" style="border: 4px solid white; border-radius: 20px; padding: 0 20px;">
+                <object data="assets/icons/jedi.svg" style="width: 50px; height: 50px; margin-right: 20px; pointer-events: none;"></object>
+                <span style="font-size: 64px;">Restart</span>
+            </div>
+        </div>
+    </div>
+
+    <script type="x-shader/x-vertex" id="vertexshader">
+
+			varying vec2 vUv;
+
+			void main() {
+
+				vUv = uv;
+
+				gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+
+			}
+
+		</script>
+
+		<script type="x-shader/x-fragment" id="fragmentshader">
+
+			uniform sampler2D baseTexture;
+			uniform sampler2D bloomTexture;
+
+			varying vec2 vUv;
+
+			void main() {
+
+				gl_FragColor = ( texture2D( baseTexture, vUv ) + vec4( 1.0 ) * texture2D( bloomTexture, vUv ) );
+
+			}
+
+		</script>
+    
+  </body>
+</html>
