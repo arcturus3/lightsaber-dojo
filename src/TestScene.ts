@@ -5,6 +5,7 @@ import {Droid} from './Droid';
 import {Lightsaber} from './Lightsaber';
 import {Player} from './Player';
 import {Interface} from './Interface';
+THREE.Cache.enabled = true;
 
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer';
 import {PositionalAudioHelper} from 'three/examples/jsm/helpers/PositionalAudioHelper';
@@ -29,6 +30,7 @@ export class TestScene extends Scene {
     sounds;
     lightsaberambient;
     walksound;
+    darthsound;
 
     maxhealth = 400;
     health = this.maxhealth;
@@ -55,9 +57,11 @@ export class TestScene extends Scene {
 
         this.lightsaberambient = this.generateAudio(this.sounds.AMBIENT, true, 0.2);
         this.walksound = this.generateAudio(this.sounds.MOVE, true, 1);
+        this.darthsound = this.generateAudio(this.sounds.DARTH, true, 0.5);
         // this.playSound(this.sounds.MOVE,true,0.2);
         this.lightsaberambient.play();
         this.walksound.play();
+        this.darthsound.play();
         // console.log(this.lightsaberambient.isPlaying);
 
         console.log(this.lightsaberambient.isPlaying);
@@ -96,7 +100,9 @@ export class TestScene extends Scene {
         this.droids = new Set();
         this.deaddroids = new Set();
         this.droidToIntervals = {};
-        this.wave = 0;
+        this.wave = 1;
+
+
 
         this.lightsaber = new Lightsaber();
         this.lightsaber.position.set(0.1, -0.5, -0.5);
@@ -123,6 +129,15 @@ export class TestScene extends Scene {
         sprite.position.set(0, 0, -1);
 
         this.camera.add(sprite);
+        const newdroid = new Droid();
+        this.droids.add(newdroid);
+        this.player.addObject(newdroid);
+        this.add(newdroid);
+        
+        this.droidToIntervals[newdroid.uuid] = this.setRandomInterval(() => {
+        const target = this.camera.position.clone();
+        target.y -= 0.25;
+        this.droidfire(newdroid, target);}, 1000, 4000);
     }
 
 
@@ -278,6 +293,12 @@ loadMaterial_(name:String, tiling:number) {
         
         this.updateDroids(delta, this.listener);
         this.updateDeadDroids(delta);
+        if(!this.lightsaber.sith) {
+            this.darthsound.pause();
+        }
+        else {
+            this.darthsound.play();
+        }
     }
 
     updateBolts(delta: number, playerPosition: THREE.Vector3, elapsedtime: number, bolts) {
@@ -334,7 +355,7 @@ loadMaterial_(name:String, tiling:number) {
                         this.health = Math.min(this.health, this.maxhealth);
                         const overlay = new Interface();
                         overlay.renderHealthbar(this.health / this.maxhealth);
-                        
+                        break;
                     }
                 }
                 
@@ -353,7 +374,7 @@ loadMaterial_(name:String, tiling:number) {
         const GRAVITY = new THREE.Vector3(0,-1,0).multiplyScalar(9.8 * 90);
         const DAMPING = 0.03;
         const TIMESTEP = 2 / 1000;
-        const scalar = 3.5;
+        const scalar = 5;
         for(let droid of this.deaddroids) {
             const pos = droid.position;
             droid.deadtime += timeElapsedS;
@@ -437,7 +458,8 @@ loadMaterial_(name:String, tiling:number) {
         MOVE: audioLoader.loadAsync("audio/walk2.m4a"),
         BLASTER: audioLoader.loadAsync("audio/blaster audio.mp3"),
         BACKGROUND: audioLoader.loadAsync("audio/duelofthefates.mp3"),
-        COPYRIGHTBACKGROUND:  audioLoader.loadAsync("audio/realduelofthefates.mp3")
+        COPYRIGHTBACKGROUND:  audioLoader.loadAsync("audio/realduelofthefates.mp3"),
+        DARTH: audioLoader.loadAsync("audio/darthed.mp3")
         }
         return ret;
     }

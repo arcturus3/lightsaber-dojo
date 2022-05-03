@@ -21,6 +21,7 @@ export class Lightsaber extends Group {
     colors;
     index = 0;
     colorswapwait = 0;
+    sith =false;
 
     constructor() {
         super();
@@ -110,7 +111,11 @@ export class Lightsaber extends Group {
         this.blade.material.color.getHSL(saberhue);
         if((saberhue.h >= 0 && saberhue.h <= 20/360) || (saberhue.h >= 330/360 && saberhue.h <=1)) {
             console.log("welcome to the darkside");
+            this.sith = true;
             // console.log(saberhue);
+        }
+        else {
+            this.sith = false;
         }
     }
 

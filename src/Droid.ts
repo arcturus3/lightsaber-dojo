@@ -3,9 +3,10 @@ import {degToRad} from 'three/src/math/MathUtils';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader'
 import { MTLLoader } from 'three/examples/jsm/loaders/MTLLoader'
 import { Interface } from './Interface';
+import {setdroidobject} from './global'
+
 
 export class Droid extends Group {
-    index: number;
     difficulty;
     health = 100;
     target;
@@ -15,25 +16,27 @@ export class Droid extends Group {
     moveaudio;
     vtdt = 0;
     deadtime = 0;
+    axis;
 
     constructor() {
         super();
-        var droidOBJ = 'models/jedi-training-droid/mesh.obj';
-        var droidMTL = 'models/jedi-training-droid/texture.mtl';    
-        const mtlLoader = new MTLLoader();
-        const objLoader = new OBJLoader();
-        var temp = new Object3D();
-        mtlLoader.load(droidMTL, function(materials) {
-            materials.preload();
-            objLoader.setMaterials(materials);
-            objLoader.load(droidOBJ,  (object) => {
-                object.scale.divideScalar(20);
-                temp.copy( object, true);
-            }); 
-        });
+        // todo
+        // var droidOBJ = 'models/jedi-training-droid/mesh.obj';
+        // var droidMTL = 'models/jedi-training-droid/texture.mtl';    
+        // const mtlLoader = new MTLLoader();
+        // const objLoader = new OBJLoader();
+        // var temp = new Object3D();
+        // mtlLoader.load(droidMTL, function(materials) {
+        //     materials.preload();
+        //     objLoader.setMaterials(materials);
+        //     objLoader.load(droidOBJ,  (object) => {
+        //         object.scale.divideScalar(20);
+        //         temp.copy( object, true);
+        //     }); 
+        // });
+        let temp = setdroidobject();
         this.add(temp);
         this.name = "training-droid";
-        this.index = 0;
         this.difficulty = 1;
         this.target = new Vector3();
         this.lives = 1;
@@ -41,6 +44,7 @@ export class Droid extends Group {
         this.waitTime = 0;
         const audioLoader = new AudioLoader();
         this.moveaudio = audioLoader.loadAsync("audio/droid movement.m4a");
+        this.axis = new Vector3(Math.random(), 0, Math.random()+1).normalize();
     }
 
     moveDroid(delta, playerPosition, listener) {
@@ -50,23 +54,27 @@ export class Droid extends Group {
         if(distance > shootingdistance) {
             this.target.copy(playerPosition);
             this.lookAt(this.target);
-            this.translateZ(10*delta);
+            // this.translateZ(10*delta);
+            this.translateOnAxis(this.axis, 10*delta);
             this.waitTime = 0;
         }
         else if(targetdistance > 0.5){
-            this.translateZ(7*delta);
+            // this.translateZ(7*delta);
+            this.translateOnAxis(this.axis, 10*delta);
             this.waitTime = 0;
-            this.waitDuration = (Math.random()*8)+2;
+            this.waitDuration = (Math.random()*6)+4;
         }
         else{
             this.waitTime += delta;
             if(this.waitTime > this.waitDuration){
                 this.target.copy(this.randomdroidpos(shootingdistance,playerPosition));
                 this.lookAt(this.target);
-                this.translateZ(7*delta);
+                // this.translateZ(7*delta);
+                this.translateOnAxis(this.axis, 10*delta);
                 console.log("moving");
                 this.waitTime = 0;
                 this.playSound(this.moveaudio, false, 0.2, listener);
+                this.axis = new Vector3(Math.random(), 0, Math.random()+1).normalize();
             }
         }
     }
