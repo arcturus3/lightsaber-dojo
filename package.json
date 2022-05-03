@@ -2,11 +2,11 @@
   "name": "lightsaber-dojo",
   "private": true,
   "version": "0.0.0",
-  "repository": "https://github.com/arcturus3/lightsaber-dojo",
+  "homepage": "https://arcturus3.github.io/lightsaber-dojo",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
-    "build-unsafe": "vite build",
+    "build": "tsc && vite build --base=/lightsaber-dojo/",
+    "build-unsafe": "vite build --base=/lightsaber-dojo/",
     "preview": "vite preview",
     "predeploy": "npm run build-unsafe",
     "deploy": "gh-pages --dist dist"

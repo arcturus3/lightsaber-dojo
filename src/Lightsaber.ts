@@ -35,7 +35,7 @@ export class Lightsaber extends Group {
 
         this.mesh = new Group();
         this.name = 'LightSaber';
-        loader.load('/models/obi-wan_kenobi_lightsaber/scene.gltf', (gltf) => {
+        loader.load('models/obi-wan_kenobi_lightsaber/scene.gltf', (gltf) => {
             gltf.scene.scale.divideScalar(50);
             // gltf.scene.scale.y *= 30;
             gltf.scene.rotateY(degToRad(60));
